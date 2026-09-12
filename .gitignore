@@ -1,0 +1,30 @@
+# Output della build: si rigenera con `npm run build`
+dist/
+
+# Tipi e cache generati da Astro
+.astro/
+
+# Dipendenze: si reinstallano con `npm install` (package-lock.json va versionato)
+node_modules/
+
+# Log
+*.log
+
+# Variabili d'ambiente: MAI su Git
+.env
+.env.*
+
+# Claude Code: launch.json va versionato, le impostazioni locali no
+.claude/settings.local.json
+
+# Archivi creati per caricare dist/ su Hostinger
+*.zip
+
+# File di sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/

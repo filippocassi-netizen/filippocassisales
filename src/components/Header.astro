@@ -1,0 +1,103 @@
+---
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+
+const voci = [
+  { label: 'Home', href: '/' },
+  { label: 'Chi sono', href: '/chi-sono/' },
+  { label: 'Blog', href: 'https://filippocassisales.com/blog/' },
+  { label: 'Contatti', href: '/contatti/' },
+];
+
+const lingue = [
+  { code: 'it', label: 'Italiano', href: '/', flag: '/img/flags/it.png' },
+  {
+    code: 'es',
+    label: 'Español',
+    href: 'https://filippocassisales.com/es/',
+    flag: '/img/flags/es.png',
+  },
+  {
+    code: 'en',
+    label: 'English',
+    href: 'https://filippocassisales.com/en/',
+    flag: '/img/flags/en.png',
+  },
+];
+
+const attiva = (href: string) => href.replace(/\/+$/, '') === path.replace(/\/+$/, '');
+---
+
+<header class="site-header">
+  <div class="inner">
+    <a class="logo-link" href="/" aria-label="Filippo Cassi — home">
+      <img
+        class="logo"
+        src="/img/logo-filippo-cassi-firma.png"
+        alt="Filippo Cassi"
+        width="230"
+        height="86"
+      />
+    </a>
+
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-nav"
+      aria-label="Apri il menu"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M3 6h18M3 12h18M3 18h18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          fill="none"></path>
+      </svg>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="Menu principale">
+      <ul class="nav">
+        {
+          voci.map((v) => (
+            <li>
+              <a href={v.href} aria-current={attiva(v.href) ? 'page' : undefined}>
+                {v.label}
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <ul class="langs">
+            {
+              lingue.map((l) => (
+                <li>
+                  <a href={l.href} lang={l.code} title={l.label}>
+                    <img
+                      class="flag"
+                      src={l.flag}
+                      alt={l.label}
+                      width="16"
+                      height="11"
+                    />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('.nav-toggle');
+  const nav = document.querySelector<HTMLElement>('#site-nav');
+
+  btn?.addEventListener('click', () => {
+    const open = nav?.classList.toggle('open') ?? false;
+    btn.setAttribute('aria-expanded', String(open));
+    btn.setAttribute('aria-label', open ? 'Chiudi il menu' : 'Apri il menu');
+  });
+</script>
