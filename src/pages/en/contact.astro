@@ -1,22 +1,22 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { PAGINE } from '../i18n';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { PAGINE } from '../../i18n';
 
-const lang = 'it' as const;
+const lang = 'en' as const;
 ---
 
 <BaseLayout
-  title="Contatti | Filippo Cassi · Closer & Account Manager"
-  description="Se cerchi un closer o un account manager che tratta ogni cliente come una relazione e non come una transazione, scrivimi."
+  title="Contact | Filippo Cassi · Closer & Account Manager"
+  description="If you are looking for a closer or an account manager who treats every client as a relationship and not a transaction, get in touch."
   lang={lang}
   translations={PAGINE.contatti}
 >
   <section class="fc-hero compact">
-    <div class="fc-over">Contatti</div>
-    <h1 class="fc-h1">Parliamone.</h1>
+    <div class="fc-over">Contact</div>
+    <h1 class="fc-h1">Let's talk.</h1>
     <p>
-      Se cerchi un closer o un account manager che tratta ogni cliente come una
-      relazione e non come una transazione, scrivimi.
+      If you are looking for a closer or an account manager who treats every
+      client as a relationship and not a transaction, get in touch.
     </p>
   </section>
 
@@ -30,7 +30,7 @@ const lang = 'it' as const;
 
       <div class="fc-cbox">
         <div class="ic" aria-hidden="true">📱</div>
-        <h3>Telefono</h3>
+        <h3>Phone</h3>
         <p><a href="tel:+34610325936">+34 610 325 936</a></p>
       </div>
 
@@ -48,7 +48,7 @@ const lang = 'it' as const;
 
       <div class="fc-cbox">
         <div class="ic" aria-hidden="true">📍</div>
-        <h3>Dove sono</h3>
+        <h3>Where I am</h3>
         <p class="plain">Las Palmas de Gran Canaria</p>
       </div>
     </div>

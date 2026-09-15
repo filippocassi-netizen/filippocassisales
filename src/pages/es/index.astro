@@ -1,10 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { INDICE_BLOG } from '../../i18n';
+import { PAGINE, TESTI } from '../../i18n';
 
 const lang = 'es' as const;
-
-const home = { it: '/', es: '/es/', en: '/en/' };
+const t = TESTI[lang];
 
 const stats = [
   { num: '12+', lbl: ['años de venta', 'Italia · España'] },
@@ -36,7 +35,7 @@ const metodo = [
   title="Filippo Cassi | Closer & Account Manager · Italia y España"
   description="Doce años vendiendo entre arte, inmobiliario y formación. Primero se construye la confianza, después llega la firma."
   lang={lang}
-  translations={home}
+  translations={PAGINE.home}
 >
   <section class="fc-hero">
     <img
@@ -58,8 +57,8 @@ const metodo = [
       la firma.
     </p>
     <p class="fc-actions">
-      <a class="fc-btn" href="mailto:filippocassi@gmail.com">Trabajemos juntos</a>
-      <a class="fc-btn ghost" href={INDICE_BLOG[lang]}>Leer los artículos</a>
+      <a class="fc-btn" href={PAGINE.contatti[lang]}>{t.ctaPrincipale}</a>
+      <a class="fc-btn ghost" href={PAGINE.chiSono[lang]}>{t.ctaSecondaria}</a>
     </p>
   </section>
 
@@ -151,6 +150,9 @@ const metodo = [
           cero en Canarias: inmobiliario internacional y venta consultiva en
           formación, en tres idiomas.
         </p>
+        <p>
+          <a class="fc-btn" href={PAGINE.chiSono[lang]}>{t.leggiStoria}</a>
+        </p>
       </div>
     </div>
   </section>
@@ -162,8 +164,7 @@ const metodo = [
       firma, hablemos.
     </p>
     <p class="fc-actions">
-      <a class="fc-btn" href="mailto:filippocassi@gmail.com">Escríbeme</a>
-      <a class="fc-btn ghost" href="tel:+34610325936">+34 610 325 936</a>
+      <a class="fc-btn" href={PAGINE.contatti[lang]}>{t.ctaContatto}</a>
     </p>
   </section>
 </BaseLayout>

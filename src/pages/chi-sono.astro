@@ -1,10 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { PAGINE } from '../i18n';
+
+const lang = 'it' as const;
 ---
 
 <BaseLayout
   title="Chi sono | Filippo Cassi · Closer & Account Manager"
   description="Arte, immobiliare, formazione. Ogni settore mi ha insegnato un pezzo dello stesso mestiere: costruire fiducia."
+  lang={lang}
+  translations={PAGINE.chiSono}
 >
   <section class="fc-hero compact">
     <img

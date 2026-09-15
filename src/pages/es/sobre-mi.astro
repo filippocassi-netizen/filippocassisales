@@ -1,0 +1,230 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { PAGINE, TESTI } from '../../i18n';
+
+const lang = 'es' as const;
+const t = TESTI[lang];
+---
+
+<BaseLayout
+  title="Sobre mí | Filippo Cassi · Closer & Account Manager"
+  description="Arte, inmobiliario, formación. Cada sector me ha enseñado una parte del mismo oficio: construir confianza."
+  lang={lang}
+  translations={PAGINE.chiSono}
+>
+  <section class="fc-hero compact">
+    <img
+      class="fc-face"
+      src="/img/filippo-cassi-closer.jpg"
+      alt="Filippo Cassi"
+      width="480"
+      height="480"
+    />
+    <div class="fc-over">Sobre mí</div>
+    <h1 class="fc-h1">
+      Doce años vendiendo,<br />
+      tres mundos distintos.
+    </h1>
+    <p>
+      Arte, inmobiliario, formación. Cada sector me ha enseñado una parte del
+      mismo oficio: construir confianza.
+    </p>
+  </section>
+
+  <section class="fc-sec">
+    <div class="fc-kick">La trayectoria</div>
+    <h2>Mi historia</h2>
+
+    <ul class="fc-tl">
+      <li>
+        <span class="yr">2012 – 2014 · Pavía</span>
+        <h3>Galería de arte Liguri Undici</h3>
+        <p>
+          Mis primeros pasos en la venta, rodeado de arte. Nadie
+          &ldquo;necesita&rdquo; un cuadro: ahí descubrí que vender significa
+          contar historias y conectar a las personas con un significado, con
+          pasión y emoción.
+        </p>
+        <img
+          class="fc-tl-photo"
+          src="/img/filippo-cassi-galleria-arte-liguri-undici.jpg"
+          alt="Filippo Cassi en la galería de arte Liguri Undici, Pavía, con representantes institucionales locales"
+          loading="lazy"
+          width="800"
+          height="523"
+        />
+        <div class="fc-tl-cap">En la galería, con representantes institucionales locales.</div>
+      </li>
+
+      <li>
+        <span class="yr">2014 – 2022 · Pavía</span>
+        <h3>Tecnocasa — de comercial a responsable de agencia</h3>
+        <p>
+          La experiencia más larga y formativa. En 2015 los resultados y la
+          capacidad de dirigir a otros me llevan a ser responsable: bajo mi
+          gestión la oficina consigue premios regionales y provinciales y se
+          convierte en una referencia de la zona.
+        </p>
+        <div class="fc-tl-grid">
+          <figure>
+            <img
+              src="/img/filippo-cassi-premio-miglior-agente-pavia.jpg"
+              alt="Filippo Cassi premiado como mejor agente inmobiliario por número de ventas, provincia de Pavía"
+              loading="lazy"
+              width="700"
+              height="525"
+            />
+            <figcaption class="fc-tl-cap">
+              Premiado como mejor agente por número de ventas, provincia de Pavía
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="/img/filippo-cassi-pranzo-oreste-pasquali-tecnocasa.jpg"
+              alt="Filippo Cassi comiendo con Oreste Pasquali, presidente fundador de Tecnocasa"
+              loading="lazy"
+              width="700"
+              height="393"
+            />
+            <figcaption class="fc-tl-cap">
+              Con Oreste Pasquali, presidente fundador de Tecnocasa
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="/img/filippo-cassi-responsabile-agenzia-tecnocasa.jpg"
+              alt="Filippo Cassi el día de su promoción a Responsable de Agencia Tecnocasa"
+              loading="lazy"
+              width="700"
+              height="393"
+            />
+            <figcaption class="fc-tl-cap">
+              El día de la promoción a Responsable de Agencia
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="/img/filippo-cassi-premio-team-lombardia-tecnocasa.jpg"
+              alt="El equipo de Filippo Cassi premiado por facturación y ventas, región de Lombardía"
+              loading="lazy"
+              width="700"
+              height="685"
+            />
+            <figcaption class="fc-tl-cap">
+              Mi equipo premiado por facturación y ventas, región de Lombardía
+            </figcaption>
+          </figure>
+        </div>
+      </li>
+
+      <li>
+        <span class="yr">2022 – 2024 · Las Palmas de Gran Canaria</span>
+        <h3>El salto: nueva vida, nuevas competencias</h3>
+        <p>
+          Empiezo de cero en Canarias. Máster en Marketing Digital (Digital
+          Coach) y trabajo en remoto como appointment setter y closer para Unger
+          Academy: contacto telefónico diario con los clientes, gestión de citas
+          y acompañamiento en los programas de formación.
+        </p>
+      </li>
+
+      <li>
+        <span class="yr">2024 – 2025 · Las Palmas de Gran Canaria</span>
+        <div class="fc-tl-side">
+          <div class="txt">
+            <h3>Gilmar Canarias — consultor inmobiliario internacional</h3>
+            <p>
+              Acompaño a clientes de todo el mundo en la búsqueda de su casa
+              ideal. Cada venta no es una transacción sino un viaje
+              personalizado: negociación, empatía y generación de confianza.
+            </p>
+          </div>
+          <img
+            src="/img/filippo-cassi-gilmar-canarias-ritratto.jpg"
+            alt="Filippo Cassi, consultor inmobiliario Gilmar Canarias"
+            loading="lazy"
+            width="500"
+            height="500"
+          />
+        </div>
+      </li>
+
+      <li>
+        <span class="yr">Hoy · En remoto</span>
+        <div class="fc-tl-side">
+          <div class="txt">
+            <h3>Unger Academy — Closer &amp; Account Manager</h3>
+            <p>
+              Cualifico leads inbound centrándome en las citas con alta
+              probabilidad de cierre, y trabajo para mejorar la calidad del
+              funnel y la conversión del equipo de ventas.
+            </p>
+          </div>
+          <img
+            src="/img/filippo-cassi-oggi-unger.jpg"
+            alt="Filippo Cassi, hoy, Unger Academy"
+            loading="lazy"
+            width="500"
+            height="500"
+          />
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="fc-band">
+    <blockquote>
+      <p>
+        «Cuando entiendes el problema del cliente mejor que él,<br />
+        ya no tienes que convencerlo: es él quien te pide que lo guíes.»
+      </p>
+    </blockquote>
+  </section>
+
+  <section class="fc-sec">
+    <div class="fc-split">
+      <div>
+        <div class="fc-kick">Filosofía</div>
+        <h2>Cómo trabajo</h2>
+      </div>
+      <div>
+        <p>
+          No creo en la presión externa: descuentos que caducan esta noche,
+          urgencias inventadas. Un cliente empujado a firmar así está decidiendo
+          por las razones de otro, y se nota a la primera dificultad. La presión
+          que funciona es interna: nace cuando el cliente ve con claridad dónde
+          está hoy, con números reales, adónde quiere llegar y cuánto le cuesta
+          cada mes que pasa sin moverse. En ese punto no hace falta empujar:
+          quedarse quieto se ha vuelto más caro que decidir.
+        </p>
+        <p>
+          En una llamada tengo solo dos tareas: entender si de verdad puedo
+          ayudar a la persona que tengo delante, y quitar de la mesa cualquier
+          objeción antes de hablar de firma. Detrás de cada objeción hay una
+          pregunta sin respuesta —el precio, el momento, la duda de no ser capaz—
+          y mi trabajo es hacerla emerger y responderla, hasta que elegir se
+          convierta en lo más fácil. La empatía no es debilidad: precisamente
+          porque he entendido de verdad la situación del cliente, puedo
+          permitirme ser directo. Y la convicción no se actúa: se nota en la voz
+          antes incluso que en las palabras.
+        </p>
+        <div class="fc-langs">
+          <span>🇮🇹 Italiano — nativo</span>
+          <span>🇪🇸 Español — avanzado</span>
+          <span>🇬🇧 English — avanzado</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fc-cta">
+    <h2>Hablemos.</h2>
+    <p>
+      Busco oportunidades como closer y account manager, en remoto, en italiano,
+      español e inglés.
+    </p>
+    <p class="fc-actions">
+      <a class="fc-btn" href={PAGINE.contatti[lang]}>{t.ctaContatto}</a>
+    </p>
+  </section>
+</BaseLayout>

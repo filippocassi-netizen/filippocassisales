@@ -1,10 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { INDICE_BLOG } from '../../i18n';
+import { PAGINE, TESTI } from '../../i18n';
 
 const lang = 'en' as const;
-
-const home = { it: '/', es: '/es/', en: '/en/' };
+const t = TESTI[lang];
 
 const stats = [
   { num: '12+', lbl: ['years in sales', 'Italy · Spain'] },
@@ -36,7 +35,7 @@ const metodo = [
   title="Filippo Cassi | Closer & Account Manager · Italy and Spain"
   description="Twelve years selling across art, real estate and training. First you build the trust, then the signature comes."
   lang={lang}
-  translations={home}
+  translations={PAGINE.home}
 >
   <section class="fc-hero">
     <img
@@ -58,8 +57,8 @@ const metodo = [
       comes.
     </p>
     <p class="fc-actions">
-      <a class="fc-btn" href="mailto:filippocassi@gmail.com">Let's work together</a>
-      <a class="fc-btn ghost" href={INDICE_BLOG[lang]}>Read the articles</a>
+      <a class="fc-btn" href={PAGINE.contatti[lang]}>{t.ctaPrincipale}</a>
+      <a class="fc-btn ghost" href={PAGINE.chiSono[lang]}>{t.ctaSecondaria}</a>
     </p>
   </section>
 
@@ -150,6 +149,9 @@ const metodo = [
           international real estate and consultative selling in training, in
           three languages.
         </p>
+        <p>
+          <a class="fc-btn" href={PAGINE.chiSono[lang]}>{t.leggiStoria}</a>
+        </p>
       </div>
     </div>
   </section>
@@ -161,8 +163,7 @@ const metodo = [
       the signature, let's talk.
     </p>
     <p class="fc-actions">
-      <a class="fc-btn" href="mailto:filippocassi@gmail.com">Email me</a>
-      <a class="fc-btn ghost" href="tel:+34610325936">+34 610 325 936</a>
+      <a class="fc-btn" href={PAGINE.contatti[lang]}>{t.ctaContatto}</a>
     </p>
   </section>
 </BaseLayout>

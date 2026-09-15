@@ -1,5 +1,5 @@
 ---
-import { LINGUE, MENU, linguaDaUrl, type Lang } from '../i18n';
+import { LINGUE, menu, PAGINE, linguaDaUrl, type Lang } from '../i18n';
 
 interface Props {
   lang?: Lang;
@@ -10,14 +10,14 @@ interface Props {
 const { lang = linguaDaUrl(Astro.url.pathname), translations } = Astro.props;
 
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const voci = MENU[lang];
+const voci = menu(lang);
 
 const lingue = LINGUE.map((l) => ({
   ...l,
-  href: translations?.[l.code] ?? l.home,
+  href: translations?.[l.code] ?? PAGINE.home[l.code],
 }));
 
-const homeLingua = LINGUE.find((l) => l.code === lang)?.home ?? '/';
+const homeLingua = PAGINE.home[lang];
 
 const attiva = (href: string) => href.replace(/\/+$/, '') === path.replace(/\/+$/, '');
 ---

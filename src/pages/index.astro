@@ -1,5 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { PAGINE } from '../i18n';
+
+const lang = 'it' as const;
 
 const stats = [
   { num: '12+', lbl: ['anni di vendita', 'Italia · Spagna'] },
@@ -30,6 +33,8 @@ const metodo = [
 <BaseLayout
   title="Filippo Cassi | Closer & Account Manager · Italia e Spagna"
   description="Dodici anni di vendite tra arte, immobiliare e formazione. Prima si costruisce la fiducia, poi arriva la firma."
+  lang={lang}
+  translations={PAGINE.home}
 >
   <section class="fc-hero">
     <img

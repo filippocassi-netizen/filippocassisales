@@ -2,47 +2,46 @@ export type Lang = 'it' | 'es' | 'en';
 
 export const LINGUA_PREDEFINITA: Lang = 'it';
 
-export const LINGUE: { code: Lang; label: string; flag: string; home: string }[] = [
-  { code: 'it', label: 'Italiano', flag: '/img/flags/it.png', home: '/' },
-  { code: 'es', label: 'Español', flag: '/img/flags/es.png', home: '/es/' },
-  { code: 'en', label: 'English', flag: '/img/flags/en.png', home: '/en/' },
+export const LINGUE: { code: Lang; label: string; flag: string }[] = [
+  { code: 'it', label: 'Italiano', flag: '/img/flags/it.png' },
+  { code: 'es', label: 'Español', flag: '/img/flags/es.png' },
+  { code: 'en', label: 'English', flag: '/img/flags/en.png' },
 ];
 
-/** Valore di og:locale e dell'attributo lang. */
 export const OG_LOCALE: Record<Lang, string> = {
   it: 'it_IT',
   es: 'es_ES',
   en: 'en_US',
 };
 
-/** Indice del blog per lingua. Gli URL replicano quelli del vecchio sito WordPress. */
-export const INDICE_BLOG: Record<Lang, string> = {
-  it: '/blog/',
-  es: '/es/articulos/',
-  en: '/en/articles/',
+/**
+ * Le pagine del sito, con l'URL in ogni lingua.
+ * Ogni voce qui dentro è anche la mappa `translations` da passare al layout,
+ * quindi hreflang e selettore di lingua restano automaticamente allineati.
+ * Le tre lingue hanno esattamente le stesse pagine: se ne aggiungi una, va
+ * aggiunta in tutte e tre.
+ */
+export const PAGINE = {
+  home: { it: '/', es: '/es/', en: '/en/' },
+  chiSono: { it: '/chi-sono/', es: '/es/sobre-mi/', en: '/en/about/' },
+  blog: { it: '/blog/', es: '/es/articulos/', en: '/en/articles/' },
+  contatti: { it: '/contatti/', es: '/es/contacto/', en: '/en/contact/' },
+} satisfies Record<string, Record<Lang, string>>;
+
+export const INDICE_BLOG = PAGINE.blog;
+
+const ETICHETTE: Record<Lang, Record<keyof typeof PAGINE, string>> = {
+  it: { home: 'Home', chiSono: 'Chi sono', blog: 'Blog', contatti: 'Contatti' },
+  es: { home: 'Inicio', chiSono: 'Sobre mí', blog: 'Artículos', contatti: 'Contacto' },
+  en: { home: 'Home', chiSono: 'About', blog: 'Articles', contatti: 'Contact' },
 };
 
-/**
- * Voci di menu per lingua.
- * ES ed EN hanno solo home e articoli: sono le uniche sezioni che esistevano
- * anche sul sito precedente. Chi sono e Contatti restano solo in italiano.
- */
-export const MENU: Record<Lang, { label: string; href: string }[]> = {
-  it: [
-    { label: 'Home', href: '/' },
-    { label: 'Chi sono', href: '/chi-sono/' },
-    { label: 'Blog', href: '/blog/' },
-    { label: 'Contatti', href: '/contatti/' },
-  ],
-  es: [
-    { label: 'Inicio', href: '/es/' },
-    { label: 'Artículos', href: '/es/articulos/' },
-  ],
-  en: [
-    { label: 'Home', href: '/en/' },
-    { label: 'Articles', href: '/en/articles/' },
-  ],
-};
+const ORDINE = ['home', 'chiSono', 'blog', 'contatti'] as const;
+
+/** Menu di navigazione: stesse quattro voci in tutte le lingue. */
+export function menu(lang: Lang): { label: string; href: string }[] {
+  return ORDINE.map((k) => ({ label: ETICHETTE[lang][k], href: PAGINE[k][lang] }));
+}
 
 export const TESTI: Record<Lang, Record<string, string>> = {
   it: {
@@ -50,33 +49,30 @@ export const TESTI: Record<Lang, Record<string, string>> = {
     titoloBlog: 'Blog',
     sottotitoloBlog: 'Appunti su vendita, ascolto e strumenti che mi costruisco.',
     leggi: 'Leggi',
-    pubblicatoIl: 'Pubblicato il',
-    altreLingue: 'Leggi in',
-    non_trovato: 'Pagina non trovata',
-    non_trovato_testo: 'La pagina che cercavi non esiste o è stata spostata.',
-    tornaHome: 'Torna alla home',
+    ctaPrincipale: 'Lavoriamo insieme',
+    ctaSecondaria: 'La mia storia',
+    ctaContatto: 'Contattami',
+    leggiStoria: 'Leggi tutta la storia',
   },
   es: {
     tornaAlBlog: '← Todos los artículos',
     titoloBlog: 'Artículos',
     sottotitoloBlog: 'Notas sobre venta, escucha y herramientas que me construyo.',
     leggi: 'Leer',
-    pubblicatoIl: 'Publicado el',
-    altreLingue: 'Leer en',
-    non_trovato: 'Página no encontrada',
-    non_trovato_testo: 'La página que buscabas no existe o se ha movido.',
-    tornaHome: 'Volver al inicio',
+    ctaPrincipale: 'Trabajemos juntos',
+    ctaSecondaria: 'Mi historia',
+    ctaContatto: 'Escríbeme',
+    leggiStoria: 'Leer la historia completa',
   },
   en: {
     tornaAlBlog: '← All articles',
     titoloBlog: 'Articles',
     sottotitoloBlog: 'Notes on selling, listening, and the tools I build for myself.',
     leggi: 'Read',
-    pubblicatoIl: 'Published on',
-    altreLingue: 'Read in',
-    non_trovato: 'Page not found',
-    non_trovato_testo: 'The page you were looking for does not exist or has moved.',
-    tornaHome: 'Back to home',
+    ctaPrincipale: "Let's work together",
+    ctaSecondaria: 'My story',
+    ctaContatto: 'Get in touch',
+    leggiStoria: 'Read the full story',
   },
 };
 
