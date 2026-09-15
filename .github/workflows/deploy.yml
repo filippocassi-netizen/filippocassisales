@@ -2,6 +2,15 @@ name: Deploy to Hostinger
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Simulazione: elenca le modifiche senza applicarle"
+        type: boolean
+        default: true
+      clean_slate:
+        description: "Svuota public_html prima di caricare (solo per il primo deploy)"
+        type: boolean
+        default: false
 
 concurrency:
   group: production-deploy
@@ -32,5 +41,9 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
           local-dir: ./dist/
           server-dir: public_html/
+          dry-run: ${{ inputs.dry_run }}
+          dangerous-clean-slate: ${{ inputs.clean_slate }}
+          log-level: standard
