@@ -1,35 +1,30 @@
 ---
+import { LINGUE, MENU, linguaDaUrl, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+  /** Mappa lingua -> URL della stessa pagina. Senza, le bandiere puntano alla home della lingua. */
+  translations?: Partial<Record<Lang, string>>;
+}
+
+const { lang = linguaDaUrl(Astro.url.pathname), translations } = Astro.props;
+
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const voci = MENU[lang];
 
-const voci = [
-  { label: 'Home', href: '/' },
-  { label: 'Chi sono', href: '/chi-sono/' },
-  { label: 'Blog', href: 'https://filippocassisales.com/blog/' },
-  { label: 'Contatti', href: '/contatti/' },
-];
+const lingue = LINGUE.map((l) => ({
+  ...l,
+  href: translations?.[l.code] ?? l.home,
+}));
 
-const lingue = [
-  { code: 'it', label: 'Italiano', href: '/', flag: '/img/flags/it.png' },
-  {
-    code: 'es',
-    label: 'Español',
-    href: 'https://filippocassisales.com/es/',
-    flag: '/img/flags/es.png',
-  },
-  {
-    code: 'en',
-    label: 'English',
-    href: 'https://filippocassisales.com/en/',
-    flag: '/img/flags/en.png',
-  },
-];
+const homeLingua = LINGUE.find((l) => l.code === lang)?.home ?? '/';
 
 const attiva = (href: string) => href.replace(/\/+$/, '') === path.replace(/\/+$/, '');
 ---
 
 <header class="site-header">
   <div class="inner">
-    <a class="logo-link" href="/" aria-label="Filippo Cassi — home">
+    <a class="logo-link" href={homeLingua} aria-label="Filippo Cassi — home">
       <img
         class="logo"
         src="/img/logo-filippo-cassi-firma.png"
@@ -72,7 +67,12 @@ const attiva = (href: string) => href.replace(/\/+$/, '') === path.replace(/\/+$
             {
               lingue.map((l) => (
                 <li>
-                  <a href={l.href} lang={l.code} title={l.label}>
+                  <a
+                    href={l.href}
+                    lang={l.code}
+                    title={l.label}
+                    aria-current={l.code === lang ? 'true' : undefined}
+                  >
                     <img
                       class="flag"
                       src={l.flag}

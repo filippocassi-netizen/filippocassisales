@@ -1,0 +1,169 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { INDICE_BLOG } from '../../i18n';
+
+const lang = 'es' as const;
+
+const home = { it: '/', es: '/es/', en: '/en/' };
+
+const stats = [
+  { num: '12+', lbl: ['años de venta', 'Italia · España'] },
+  { num: '300+', lbl: ['leads gestionados', 'cada mes'] },
+  { num: '30%+', lbl: ['conversión', 'lead → cita'] },
+  { num: '150k+', lbl: ['facturación generada', 'por trimestre'] },
+];
+
+const metodo = [
+  {
+    n: '01',
+    title: 'Diagnóstico',
+    body: 'Ningún médico receta sin diagnóstico. Antes de hablar de soluciones hago preguntas precisas: dónde está el cliente hoy, con números reales, adónde quiere llegar y qué lo ha bloqueado hasta ahora. Solo el diagnóstico da derecho a recetar.',
+  },
+  {
+    n: '02',
+    title: 'Escucha',
+    body: 'En la llamada mi primer trabajo es entender si puedo ayudar de verdad, y cómo. Un «me lo tengo que pensar» no es un no: es una pregunta que el cliente aún no ha hecho. La hago emerger y la respondo antes de llegar al precio.',
+  },
+  {
+    n: '03',
+    title: 'Cierre',
+    body: 'Si las dos primeras fases están bien hechas, el cierre no hay que forzarlo: las objeciones ya se han disuelto y el cliente cierra en la llamada, por sus razones, no por las mías.',
+  },
+];
+---
+
+<BaseLayout
+  title="Filippo Cassi | Closer & Account Manager · Italia y España"
+  description="Doce años vendiendo entre arte, inmobiliario y formación. Primero se construye la confianza, después llega la firma."
+  lang={lang}
+  translations={home}
+>
+  <section class="fc-hero">
+    <img
+      class="fc-face"
+      src="/img/filippo-cassi-closer.jpg"
+      alt="Filippo Cassi — Closer y Account Manager"
+      width="480"
+      height="480"
+    />
+    <div class="fc-over">Closer &amp; Account Manager</div>
+    <h1 class="fc-h1">
+      Vender no es convencer.<br />
+      Es entender el problema mejor que quien lo vive.
+    </h1>
+    <p>
+      Doce años vendiendo entre arte, inmobiliario y formación. He dirigido una
+      agencia premiada, he tratado con clientes en tres idiomas y he aprendido
+      algo que no cambia nunca: primero se construye la confianza, después llega
+      la firma.
+    </p>
+    <p class="fc-actions">
+      <a class="fc-btn" href="mailto:filippocassi@gmail.com">Trabajemos juntos</a>
+      <a class="fc-btn ghost" href={INDICE_BLOG[lang]}>Leer los artículos</a>
+    </p>
+  </section>
+
+  <section class="fc-stats">
+    <div class="in">
+      {
+        stats.map((s) => (
+          <div>
+            <div class="num">{s.num}</div>
+            <div class="lbl">
+              {s.lbl[0]}
+              <br />
+              {s.lbl[1]}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="fc-sec">
+    <div class="fc-kick">Método</div>
+    <h2>Cómo cierro una venta</h2>
+    <p class="fc-lede">
+      Un cliente nunca compra el producto: compra el paso desde donde está hasta
+      donde quiere llegar. Quien entiende esa distancia mejor que el propio
+      cliente se gana el derecho a acompañarlo.
+    </p>
+    <div class="fc-grid">
+      {
+        metodo.map((m) => (
+          <div class="fc-card">
+            <div class="n">{m.n}</div>
+            <h3>{m.title}</h3>
+            <p>{m.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="fc-band">
+    <blockquote>
+      <p>
+        «Una venta se cierra cuando tu certeza<br />
+        pesa más que su duda.»
+      </p>
+    </blockquote>
+    <div class="who">Filippo Cassi</div>
+  </section>
+
+  <section class="fc-sec">
+    <div class="fc-kick">Antes de la técnica</div>
+    <h2>Qué compra de verdad un cliente</h2>
+    <p class="fc-prose">
+      Detrás de cada compra hay dos razones: la de superficie, que el cliente
+      sabe contar, y la emocional, que casi nunca se dice. La seguridad de haber
+      elegido bien, el reconocimiento de la gente de alrededor, la sensación de
+      estar avanzando.
+    </p>
+    <p class="fc-prose">
+      Una objeción no es un obstáculo: es el punto exacto en el que una de esas
+      razones todavía no tiene respuesta. Precio, tiempo, desconfianza: cada «no»
+      tiene una dirección precisa. El oficio del closer es encontrarla antes de
+      que termine la llamada.
+    </p>
+  </section>
+
+  <section class="fc-sec">
+    <div class="fc-split">
+      <div>
+        <div class="fc-kick">Trayectoria</div>
+        <h2>«Aprendí a vender donde nadie compra por necesidad»</h2>
+        <img
+          class="fc-port"
+          src="/img/filippo-cassi-ritratto.jpg"
+          alt="Filippo Cassi"
+          width="460"
+          height="690"
+        />
+      </div>
+      <div>
+        <p>
+          En una galería de arte nadie &ldquo;necesita&rdquo; un cuadro: se
+          compra porque algo por dentro dice que sí. Ahí es donde empecé, en
+          Pavía. Un año después de entrar en Tecnocasa era responsable de
+          agencia, con más de 40 ventas y más de 70 alquileres al año — hasta el
+          2º puesto regional en Lombardía por producción en 2019. Luego empecé de
+          cero en Canarias: inmobiliario internacional y venta consultiva en
+          formación, en tres idiomas.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fc-cta">
+    <h2>¿Cuántas ventas pierde tu equipo después del primer &ldquo;no&rdquo;?</h2>
+    <p>
+      Si buscas un closer que no queme los leads sino que los acompañe hasta la
+      firma, hablemos.
+    </p>
+    <p class="fc-actions">
+      <a class="fc-btn" href="mailto:filippocassi@gmail.com">Escríbeme</a>
+      <a class="fc-btn ghost" href="tel:+34610325936">+34 610 325 936</a>
+    </p>
+  </section>
+</BaseLayout>

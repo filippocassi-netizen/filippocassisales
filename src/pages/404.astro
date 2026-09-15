@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// La pagina 404 viene servita su qualunque percorso, anche /es/... e /en/...,
+// quindi la lingua non è determinabile a build time: mostra tutte e tre.
+---
+
+<BaseLayout
+  title="Pagina non trovata | Filippo Cassi"
+  description="La pagina che cercavi non esiste o è stata spostata."
+  lang="it"
+>
+  <section class="fc-404">
+    <h1>Pagina non trovata</h1>
+    <p>La pagina che cercavi non esiste o è stata spostata.</p>
+    <p class="fc-actions">
+      <a class="fc-btn" href="/">Torna alla home</a>
+      <a class="fc-btn ghost" href="/blog/">Vai al blog</a>
+    </p>
+
+    <p style="margin-top:46px">
+      <strong>Página no encontrada.</strong><br />
+      <a href="/es/">Volver al inicio</a> · <a href="/es/articulos/">Artículos</a>
+    </p>
+
+    <p>
+      <strong>Page not found.</strong><br />
+      <a href="/en/">Back to home</a> · <a href="/en/articles/">Articles</a>
+    </p>
+  </section>
+</BaseLayout>

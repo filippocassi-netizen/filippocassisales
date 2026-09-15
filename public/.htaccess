@@ -1,0 +1,31 @@
+# Sta in public/, quindi finisce in dist/ e viene ripristinato a ogni deploy.
+# Se lo modifichi direttamente sul server, il prossimo deploy NON lo sovrascrive
+# (l'action non cancella file che non sono nella build) ma le due copie divergono:
+# modificalo qui.
+
+ErrorDocument 404 /404.html
+
+# Il file di stato del deploy elenca tutti i file con hash e date: non deve
+# essere leggibile dal web.
+<FilesMatch "^\.ftp-deploy-sync-state\.json$">
+  Require all denied
+</FilesMatch>
+
+# --- Redirect dal vecchio sito WordPress -------------------------------------
+# Gli articoli e gli indici del blog hanno mantenuto gli stessi URL, quindi non
+# servono redirect. Le home ES ed EN invece erano su uno slug di pagina.
+Redirect 301 /es/la-venta-es-una-historia-de-confianza/ https://filippocassisales.com/es/
+Redirect 301 /en/selling-is-a-story-of-trust/ https://filippocassisales.com/en/
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain application/javascript image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>

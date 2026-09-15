@@ -1,0 +1,168 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { INDICE_BLOG } from '../../i18n';
+
+const lang = 'en' as const;
+
+const home = { it: '/', es: '/es/', en: '/en/' };
+
+const stats = [
+  { num: '12+', lbl: ['years in sales', 'Italy · Spain'] },
+  { num: '300+', lbl: ['leads handled', 'every month'] },
+  { num: '30%+', lbl: ['conversion', 'lead → meeting'] },
+  { num: '150k+', lbl: ['revenue generated', 'per quarter'] },
+];
+
+const metodo = [
+  {
+    n: '01',
+    title: 'Diagnosis',
+    body: 'No doctor prescribes without a diagnosis. Before talking about solutions I ask precise questions: where the client is today, with real numbers, where they want to get to, and what has blocked them so far. Only the diagnosis earns you the right to prescribe.',
+  },
+  {
+    n: '02',
+    title: 'Listening',
+    body: 'On a call my first job is to work out whether I can genuinely help, and how. An "I need to think about it" is not a no: it is a question the client has not asked yet. I bring it out and answer it before we get to price.',
+  },
+  {
+    n: '03',
+    title: 'Closing',
+    body: 'If the first two stages are done properly, the close does not need forcing: the objections have already dissolved and the client closes on the call, for their reasons, not mine.',
+  },
+];
+---
+
+<BaseLayout
+  title="Filippo Cassi | Closer & Account Manager · Italy and Spain"
+  description="Twelve years selling across art, real estate and training. First you build the trust, then the signature comes."
+  lang={lang}
+  translations={home}
+>
+  <section class="fc-hero">
+    <img
+      class="fc-face"
+      src="/img/filippo-cassi-closer.jpg"
+      alt="Filippo Cassi — Closer and Account Manager"
+      width="480"
+      height="480"
+    />
+    <div class="fc-over">Closer &amp; Account Manager</div>
+    <h1 class="fc-h1">
+      Selling is not convincing.<br />
+      It is understanding the problem better than the person living it.
+    </h1>
+    <p>
+      Twelve years selling across art, real estate and training. I have run an
+      award-winning agency, dealt with clients in three languages, and learned
+      one thing that never changes: first you build the trust, then the signature
+      comes.
+    </p>
+    <p class="fc-actions">
+      <a class="fc-btn" href="mailto:filippocassi@gmail.com">Let's work together</a>
+      <a class="fc-btn ghost" href={INDICE_BLOG[lang]}>Read the articles</a>
+    </p>
+  </section>
+
+  <section class="fc-stats">
+    <div class="in">
+      {
+        stats.map((s) => (
+          <div>
+            <div class="num">{s.num}</div>
+            <div class="lbl">
+              {s.lbl[0]}
+              <br />
+              {s.lbl[1]}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="fc-sec">
+    <div class="fc-kick">Method</div>
+    <h2>How I close a sale</h2>
+    <p class="fc-lede">
+      A client never buys the product: they buy the move from where they are to
+      where they want to be. Whoever understands that distance better than the
+      client does earns the right to walk it with them.
+    </p>
+    <div class="fc-grid">
+      {
+        metodo.map((m) => (
+          <div class="fc-card">
+            <div class="n">{m.n}</div>
+            <h3>{m.title}</h3>
+            <p>{m.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="fc-band">
+    <blockquote>
+      <p>
+        &ldquo;A sale closes when your certainty<br />
+        outweighs their doubt.&rdquo;
+      </p>
+    </blockquote>
+    <div class="who">Filippo Cassi</div>
+  </section>
+
+  <section class="fc-sec">
+    <div class="fc-kick">Before technique</div>
+    <h2>What a client actually buys</h2>
+    <p class="fc-prose">
+      Behind every purchase there are two reasons: the surface one, which the
+      client can articulate, and the emotional one, which almost never gets said
+      out loud. The reassurance of having chosen well, the recognition of the
+      people around them, the feeling of moving forward.
+    </p>
+    <p class="fc-prose">
+      An objection is not an obstacle: it is the exact point where one of those
+      reasons has not been answered yet. Price, timing, distrust — every "no" has
+      a precise address. The closer's craft is finding it before the call ends.
+    </p>
+  </section>
+
+  <section class="fc-sec">
+    <div class="fc-split">
+      <div>
+        <div class="fc-kick">Background</div>
+        <h2>&ldquo;I learned to sell where nobody buys out of need&rdquo;</h2>
+        <img
+          class="fc-port"
+          src="/img/filippo-cassi-ritratto.jpg"
+          alt="Filippo Cassi"
+          width="460"
+          height="690"
+        />
+      </div>
+      <div>
+        <p>
+          In an art gallery nobody &ldquo;needs&rdquo; a painting: you buy it
+          because something inside says yes. That is where I started, in Pavia. A
+          year after joining Tecnocasa I was running an agency, with 40+ sales
+          and 70+ lettings a year — up to 2nd place in the Lombardy region for
+          production in 2019. Then I started from scratch in the Canary Islands:
+          international real estate and consultative selling in training, in
+          three languages.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fc-cta">
+    <h2>How many sales does your team lose after the first &ldquo;no&rdquo;?</h2>
+    <p>
+      If you are looking for a closer who does not burn leads but walks them to
+      the signature, let's talk.
+    </p>
+    <p class="fc-actions">
+      <a class="fc-btn" href="mailto:filippocassi@gmail.com">Email me</a>
+      <a class="fc-btn ghost" href="tel:+34610325936">+34 610 325 936</a>
+    </p>
+  </section>
+</BaseLayout>

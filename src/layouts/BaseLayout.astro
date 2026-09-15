@@ -2,23 +2,40 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { OG_LOCALE, linguaDaUrl, type Lang } from '../i18n';
 
 interface Props {
   title: string;
   description: string;
   ogImage?: string;
+  lang?: Lang;
+  /** Mappa lingua -> URL della stessa pagina, per i link hreflang. */
+  translations?: Partial<Record<Lang, string>>;
 }
 
-const { title, description, ogImage = '/img/filippo-cassi-closer.jpg' } = Astro.props;
+const {
+  title,
+  description,
+  ogImage = '/img/filippo-cassi-closer.jpg',
+  lang = linguaDaUrl(Astro.url.pathname),
+  translations,
+} = Astro.props;
 
 const canonical = Astro.site
   ? new URL(Astro.url.pathname, Astro.site).href
   : Astro.url.href;
 const ogImageUrl = Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
+
+const alternate = translations
+  ? Object.entries(translations).map(([code, href]) => ({
+      code,
+      href: Astro.site ? new URL(href, Astro.site).href : href,
+    }))
+  : [];
 ---
 
 <!doctype html>
-<html lang="it">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,6 +43,12 @@ const ogImageUrl = Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {
+      alternate.map((a) => (
+        <link rel="alternate" hreflang={a.code} href={a.href} />
+      ))
+    }
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -39,11 +62,18 @@ const ogImageUrl = Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImageUrl} />
-    <meta property="og:locale" content="it_IT" />
+    <meta property="og:locale" content={OG_LOCALE[lang]} />
+    {
+      alternate
+        .filter((a) => a.code !== lang)
+        .map((a) => (
+          <meta property="og:locale:alternate" content={OG_LOCALE[a.code as Lang]} />
+        ))
+    }
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
-    <Header />
+    <Header lang={lang} translations={translations} />
     <main>
       <slot />
     </main>
