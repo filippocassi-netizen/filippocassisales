@@ -1,29 +1,28 @@
 name: Deploy to Hostinger
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: "Dry run: list changes without applying them"
-        type: boolean
-        default: true
-      clean_slate:
-        description: "Wipe public_html before uploading (first deploy only)"
-        type: boolean
-        default: false
+
+permissions:
+  contents: read
 
 concurrency:
-  group: production-deploy
+  group: deploy-hostinger
   cancel-in-progress: false
 
 jobs:
   deploy:
+    name: Build and deploy
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up Node
+      - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -35,23 +34,16 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Inspect build output
-        run: |
-          echo "Working directory: $(pwd)"
-          echo "Resolved local-dir: $(realpath ./dist/)"
-          echo "--- files in dist/ ---"
-          find dist -type f | sort
-          echo "--- total: $(find dist -type f | wc -l) files ---"
+      - name: Verify build output
+        run: test -f dist/index.html
 
-      - name: Upload to Hostinger via FTP
+      - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
+          port: 21
+          protocol: ftp
           local-dir: ./dist/
-          server-dir: domains/filippocassisales.com/public_html/
-          dry-run: ${{ inputs.dry_run }}
-          dangerous-clean-slate: ${{ inputs.clean_slate }}
-          log-level: verbose
+          server-dir: public_html/
