@@ -51,7 +51,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./dist/
-          server-dir: public_html/
+          server-dir: domains/filippocassisales.com/public_html/
           dry-run: ${{ inputs.dry_run }}
           dangerous-clean-slate: ${{ inputs.clean_slate }}
           log-level: verbose
