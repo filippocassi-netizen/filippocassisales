@@ -47,3 +47,7 @@ jobs:
           protocol: ftp
           local-dir: ./dist/
           server-dir: ./
+          # Il default di 30s non basta: il sito ha 37 file in 12 cartelle e
+          # l'hosting condiviso e' lento sul canale di controllo FTP.
+          # Il run #14 e' morto con "Timeout (control socket)".
+          timeout: 120000
