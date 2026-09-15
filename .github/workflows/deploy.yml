@@ -54,4 +54,4 @@ jobs:
           server-dir: public_html/
           dry-run: ${{ inputs.dry_run }}
           dangerous-clean-slate: ${{ inputs.clean_slate }}
-          log-level: standard
+          log-level: verbose
