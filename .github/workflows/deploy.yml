@@ -46,4 +46,4 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./dist/
-          server-dir: public_html/
+          server-dir: ./
