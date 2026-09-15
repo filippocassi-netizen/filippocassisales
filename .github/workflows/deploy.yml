@@ -35,6 +35,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Inspect build output
+        run: |
+          echo "Working directory: $(pwd)"
+          echo "Resolved local-dir: $(realpath ./dist/)"
+          echo "--- files in dist/ ---"
+          find dist -type f | sort
+          echo "--- total: $(find dist -type f | wc -l) files ---"
+
       - name: Upload to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
