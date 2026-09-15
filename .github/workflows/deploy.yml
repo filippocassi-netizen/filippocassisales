@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Simulazione: elenca le modifiche senza applicarle"
+        description: "Dry run: list changes without applying them"
         type: boolean
         default: true
       clean_slate:
-        description: "Svuota public_html prima di caricare (solo per il primo deploy)"
+        description: "Wipe public_html before uploading (first deploy only)"
         type: boolean
         default: false
 
