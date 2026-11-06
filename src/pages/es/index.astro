@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PlushPortrait from '../../components/PlushPortrait.astro';
 import { PAGINE, TESTI } from '../../i18n';
 
 const lang = 'es' as const;
@@ -38,13 +39,7 @@ const metodo = [
   translations={PAGINE.home}
 >
   <section class="fc-hero">
-    <img
-      class="fc-face"
-      src="/img/filippo-cassi-closer.jpg"
-      alt="Filippo Cassi — Closer y Account Manager"
-      width="480"
-      height="480"
-    />
+    <PlushPortrait lang={lang} alt="Filippo Cassi — Closer y Account Manager" />
     <div class="fc-over">Closer &amp; Account Manager</div>
     <h1 class="fc-h1">
       Vender no es convencer.<br />

@@ -1,0 +1,195 @@
+---
+/**
+ * Il ritratto dell'hero, afferrabile.
+ *
+ * Parte come una fotografia normale e resta tale se qualcosa non va: senza
+ * WebGL, con `prefers-reduced-motion`, con il risparmio dati attivo o se il
+ * motore non si avvia. Il canvas sostituisce la foto solo quando e' pronto.
+ *
+ * Le espressioni (395 KB in tutto) non vengono scaricate col resto della
+ * pagina: partono quando il browser e' libero, e comunque non oltre il primo
+ * avvicinamento del puntatore.
+ */
+import type { Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  alt: string;
+}
+
+const { lang, alt } = Astro.props;
+
+const MESSAGGIO: Record<Lang, string> = {
+  it: '⌚ ...e l’orologio non c’è più.',
+  es: '⌚ ...y el reloj ya no está.',
+  en: '⌚ ...and the watch is gone.',
+};
+---
+
+<div class="fc-plush" data-plush data-messaggio={MESSAGGIO[lang]}>
+  <img
+    class="fc-plush-foto"
+    src="/img/face/smile.webp"
+    alt={alt}
+    width="1000"
+    height="1000"
+    fetchpriority="high"
+    decoding="async"
+  />
+  <p class="fc-plush-msg" aria-live="polite"></p>
+</div>
+
+<style>
+  .fc-plush {
+    position: relative;
+    width: min(80vw, 600px);
+    aspect-ratio: 1;
+    margin: 0 auto 10px;
+    touch-action: none;
+  }
+
+  /* alone morbido dietro la figura: sostituisce l'anello d'oro dell'avatar,
+     che su una sagoma ritagliata non avrebbe piu' senso */
+  .fc-plush::before {
+    content: '';
+    position: absolute;
+    inset: 6% 6% 2%;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 50% 45%,
+      rgba(201, 164, 92, 0.22) 0%,
+      rgba(201, 164, 92, 0.07) 45%,
+      transparent 70%
+    );
+    filter: blur(14px);
+    pointer-events: none;
+  }
+
+  .fc-plush-foto,
+  .fc-plush :global(canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .fc-plush-foto {
+    object-fit: contain;
+    filter: drop-shadow(0 18px 38px rgba(0, 0, 0, 0.45));
+  }
+
+  .fc-plush :global(canvas) {
+    filter: drop-shadow(0 18px 38px rgba(0, 0, 0, 0.45));
+  }
+
+  .fc-plush-msg {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    margin: 0;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--gold-light, #dbb872);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+
+  .fc-plush-msg.visibile {
+    opacity: 1;
+  }
+
+  @media (max-width: 560px) {
+    .fc-plush {
+      width: min(86vw, 420px);
+    }
+  }
+</style>
+
+<script>
+  import type { Lang } from '../i18n';
+
+  const FACCE = [
+    'smile', 'shock', 'ouch', 'deadpan',
+    'smile-nowatch', 'shock-nowatch', 'ouch-nowatch',
+  ] as const;
+
+  const REAZIONI_PRE = {
+    hovered: 'deadpan',
+    held: ['shock', 'ouch'],
+    pulled: ['ouch', 'shock'],
+  };
+  const REAZIONI_POST = {
+    hovered: 'smile-nowatch',
+    held: ['shock-nowatch', 'ouch-nowatch'],
+    pulled: ['ouch-nowatch', 'shock-nowatch'],
+  };
+
+  // L'orologio, in coordinate UV dell'immagine.
+  const OROLOGIO = { x: 0.7, y: 0.865, r: 0.06 };
+
+  function avvia(host: HTMLElement) {
+    if (host.dataset.avviato) return;
+
+    // Chi ha chiesto meno animazioni si tiene la fotografia.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Idem con il risparmio dati: 395 KB di espressioni non si impongono.
+    const conn = (navigator as any).connection;
+    if (conn?.saveData) return;
+
+    host.dataset.avviato = '1';
+
+    import('../scripts/plushie.js')
+      .then(async ({ createPlushie }) => {
+        const faces = Object.fromEntries(FACCE.map((f) => [f, `/img/face/${f}.webp`]));
+        const msg = host.querySelector<HTMLElement>('.fc-plush-msg');
+
+        const plush = await createPlushie(host, {
+          faces,
+          rest: 'smile',
+          reactions: REAZIONI_PRE,
+          grid: 56,
+          zones: [
+            {
+              nome: 'orologio',
+              ...OROLOGIO,
+              once: true,
+              forza: 0.5,
+              onHit() {
+                // il set passa subito a quello col polso nudo, altrimenti
+                // basta spostare il mouse e l'orologio ricompare
+                plush.cambiaSet({ rest: 'smile-nowatch', reactions: REAZIONI_POST });
+                // istantaneo: un oggetto rubato non svanisce in dissolvenza
+                plush.mostra('shock-nowatch', 0);
+                if (msg) {
+                  msg.textContent = host.dataset.messaggio ?? '';
+                  msg.classList.add('visibile');
+                  setTimeout(() => msg.classList.remove('visibile'), 3000);
+                }
+                setTimeout(() => plush.mostra('smile-nowatch', 420), 1500);
+              },
+            },
+          ],
+        });
+      })
+      .catch(() => {
+        // niente WebGL o modulo non caricato: resta la fotografia
+        delete host.dataset.avviato;
+      });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-plush]').forEach((host) => {
+    // al primo avvicinamento, se non e' gia' partito da solo
+    host.addEventListener('pointerenter', () => avvia(host), { once: true });
+    host.addEventListener('touchstart', () => avvia(host), { once: true, passive: true });
+    // ...e comunque appena il browser e' libero, cosi' il primo tocco non aspetta
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => avvia(host), { timeout: 4000 });
+    } else {
+      setTimeout(() => avvia(host), 2500);
+    }
+  });
+</script>

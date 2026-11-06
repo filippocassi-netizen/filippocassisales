@@ -28,3 +28,6 @@ desktop.ini
 # Editor
 .vscode/
 .idea/
+
+# Originali PNG delle espressioni: la build usa i .webp in public/img/face
+originali/

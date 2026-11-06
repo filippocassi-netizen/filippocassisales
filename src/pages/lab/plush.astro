@@ -1,0 +1,270 @@
+﻿---
+// Pagina di prova, non collegata dal menu. Serve a tarare la fisica dal vivo
+// prima di decidere se l'effetto vale per il sito.
+// Lo scatto vero, le quattro espressioni generate, e le tre versioni col
+// polso nudo che servono dopo il furto dell'orologio.
+const FACCE = [
+  'smile', 'shock', 'ouch', 'deadpan', 'dizzy',
+  'smile-nowatch', 'shock-nowatch', 'ouch-nowatch',
+];
+
+const cursori = [
+  { k: 'reach', label: 'reach â€” quanto si propaga la trazione (c)', min: 0.05, max: 1.5, step: 0.01, val: 0.55 },
+  { k: 'wobble', label: 'wobble â€” frequenza dellâ€™ondeggiamento (Ï‰)', min: 1, max: 20, step: 0.1, val: 7 },
+  { k: 'damping', label: 'damping â€” quanto in fretta si ferma (Î³)', min: 0.2, max: 12, step: 0.1, val: 2.4 },
+  { k: 'flesh', label: 'flesh â€” viscositÃ , uccide le increspature (Î½)', min: 0, max: 0.08, step: 0.001, val: 0.012 },
+  { k: 'grabRadius', label: 'grabRadius â€” larghezza della mano', min: 0.05, max: 0.6, step: 0.01, val: 0.26 },
+  { k: 'maxPull', label: 'maxPull â€” quanto lontano puoi tirare', min: 0.05, max: 0.8, step: 0.01, val: 0.34 },
+  { k: 'shade', label: 'shade â€” ombreggiatura delle pieghe', min: 0, max: 2, step: 0.05, val: 0.55 },
+];
+---
+
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lab â€” plush portrait</title>
+    <style>
+      :root { --navy: #0b1526; --gold: #c9a45c; --border: #e2e8f0; --muted: #64748b; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: #fff; color: var(--navy);
+        font: 15px/1.6 Inter, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+      .wrap { max-width: 1060px; margin: 0 auto; padding: 36px 22px 80px; }
+      h1 { font-size: 1.35rem; margin: 0 0 4px; }
+      .sub { color: var(--muted); margin: 0 0 28px; font-size: 0.92rem; }
+      .cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; align-items: start; }
+      @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+
+      .palco {
+        aspect-ratio: 1; width: 100%; max-width: 520px; margin-inline: auto;
+        position: relative; border: 1px dashed var(--border); border-radius: 12px;
+        overflow: visible;
+      }
+      /* Immagine e canvas sono entrambi fuori dal flusso: il palco tiene la sua
+         forma quadrata da solo, senza che i figli ne spostino l'altezza. */
+      .palco img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+      .plush-canvas { position: absolute; inset: 0; }
+
+      .pannello { border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+      .riga { margin-bottom: 16px; }
+      .riga label { display: flex; justify-content: space-between; gap: 10px; font-size: 0.8rem; color: var(--muted); }
+      .riga label b { color: var(--navy); font-variant-numeric: tabular-nums; font-weight: 600; }
+      .riga input[type=range] { width: 100%; accent-color: var(--gold); margin-top: 4px; }
+      select, button {
+        font: inherit; padding: 8px 12px; border: 1px solid var(--border);
+        border-radius: 8px; background: #fff; color: var(--navy); cursor: pointer;
+      }
+      button:hover { border-color: var(--gold); }
+      .azioni { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+      .stat { font-size: 0.8rem; color: var(--muted); margin-top: 14px; font-variant-numeric: tabular-nums; }
+      .err { color: #b91c1c; font-size: 0.85rem; }
+      .msg {
+        text-align: center; margin: 10px 0 0; min-height: 1.4em;
+        color: var(--gold-dark, #b08d45); font-weight: 600; font-size: 0.95rem;
+        opacity: 0; transition: opacity .35s;
+      }
+      code { background: #f4f6f9; padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+      pre { background: #f4f6f9; padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 0.78rem; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Plush portrait â€” banco di prova</h1>
+      <p class="sub">
+        Trascina la faccia. I cursori cambiano la fisica dal vivo: quando trovi
+        la combinazione giusta, i valori in fondo sono quelli da tenere.
+      </p>
+
+      <div class="cols">
+        <div>
+          <div class="palco" id="palco">
+            <img id="foto" src="/img/face/smile.webp" alt="Ritratto" />
+          </div>
+          <p id="msg" class="msg"></p>
+          <div class="azioni" style="justify-content:center;margin-top:14px">
+            {FACCE.map((f) => <button class="faccia" data-faccia={f}>{f}</button>)}
+          </div>
+          <p class="sub" style="text-align:center;margin-top:14px">
+            Il riquadro tratteggiato Ã¨ il bordo della maglia, non si vede sul sito.
+          </p>
+        </div>
+
+        <div class="pannello">
+          {
+            cursori.map((c) => (
+              <div class="riga">
+                <label for={c.k}>
+                  <span>{c.label}</span>
+                  <b id={`v-${c.k}`}>{c.val}</b>
+                </label>
+                <input
+                  type="range"
+                  id={c.k}
+                  data-k={c.k}
+                  min={c.min}
+                  max={c.max}
+                  step={c.step}
+                  value={c.val}
+                />
+              </div>
+            ))
+          }
+
+          <div class="riga">
+            <label for="grid">
+              <span>grid â€” densitÃ  della maglia (serve riavvio)</span>
+              <b id="v-grid">56</b>
+            </label>
+            <input type="range" id="grid" min="12" max="96" step="4" value="56" />
+          </div>
+
+          <div class="azioni">
+            <button id="reset">Rimetti a riposo</button>
+            <button id="riavvia">Riavvia motore</button>
+            <button id="copia">Copia valori</button>
+          </div>
+
+          <div class="stat" id="stat">â€”</div>
+          <div class="err" id="err"></div>
+        </div>
+      </div>
+
+      <h2 style="font-size:1rem;margin-top:44px">Valori correnti</h2>
+      <pre id="conf">â€”</pre>
+    </div>
+
+    <script>
+      import { createPlushie } from '../../scripts/plushie.js';
+
+      const palco = document.getElementById('palco');
+      const errBox = document.getElementById('err');
+      const statBox = document.getElementById('stat');
+      const confBox = document.getElementById('conf');
+
+      const chiavi = ['reach', 'wobble', 'damping', 'flesh', 'grabRadius', 'maxPull', 'shade'];
+      const opt = {};
+      for (const k of chiavi) opt[k] = parseFloat(document.getElementById(k).value);
+      opt.grid = parseInt(document.getElementById('grid').value, 10);
+
+      let plush = null;
+
+      function mostraConf() {
+        const o = { grid: opt.grid };
+        for (const k of chiavi) o[k] = opt[k];
+        confBox.textContent = JSON.stringify(o, null, 2);
+      }
+
+      const FACCE = [
+        'smile', 'shock', 'ouch', 'deadpan', 'dizzy',
+        'smile-nowatch', 'shock-nowatch', 'ouch-nowatch',
+      ];
+      const faces = Object.fromEntries(FACCE.map((f) => [f, `/img/face/${f}.webp`]));
+
+      // Dallo stato dell'interazione all'espressione, come fa rameerez.
+      // Due set: prima e dopo che gli rubano l'orologio.
+      const reazioniPre = {
+        hovered: 'deadpan',
+        held: ['shock', 'ouch'],
+        pulled: ['ouch', 'shock'],
+        dazed: 'dizzy',
+      };
+      const reazioniPost = {
+        hovered: 'smile-nowatch',
+        held: ['shock-nowatch', 'ouch-nowatch'],
+        pulled: ['ouch-nowatch', 'shock-nowatch'],
+        dazed: 'shock-nowatch',
+      };
+
+      // L'orologio: un click lo fa sparire, e lui se ne accorge.
+      const zones = [
+        {
+          nome: 'orologio',
+          x: 0.7, y: 0.865, r: 0.055,
+          once: true,       // si ruba una volta sola
+          forza: 0.5,       // il polso sussulta, senza spappolarsi
+          onHit() {
+            // Il set passa a quello col polso nudo SUBITO. Facendolo dopo, bastava
+            // spostare il mouse nel frattempo perche' aRiposoFaccia() dissolvesse
+            // verso 'smile' â€” che l'orologio ce l'ha ancora â€” e lo si vedeva
+            // ricomparire.
+            plush.cambiaSet({ rest: 'smile-nowatch', reactions: reazioniPost });
+            mostraMsg('âŒš ...e lâ€™orologio non câ€™Ã¨ piÃ¹.');
+            // istantaneo, non in dissolvenza: l'orologio sparisce e basta
+            plush.mostra('shock-nowatch', 0);
+            // da qui in poi tutte le facce hanno il polso nudo, quindi la
+            // dissolvenza verso il riposo non puo' piu' far riapparire nulla
+            setTimeout(() => plush.mostra('smile-nowatch', 420), 1500);
+          },
+        },
+      ];
+
+      function mostraMsg(t) {
+        const el = document.getElementById('msg');
+        el.textContent = t;
+        el.style.opacity = '1';
+        setTimeout(() => { el.style.opacity = '0'; }, 2600);
+      }
+
+      async function avvia() {
+        errBox.textContent = '';
+        if (plush) { plush.destroy(); plush = null; }
+        try {
+          plush = await createPlushie(palco, {
+            ...opt, faces, rest: 'smile', reactions: reazioniPre, zones,
+          });
+        } catch (e) {
+          errBox.textContent = 'Motore non partito: ' + e.message + ' â€” resta la fotografia.';
+        }
+        window.plush = plush; // comodo per ispezionare lo stato dalla console
+        mostraConf();
+      }
+
+      document.querySelectorAll('button.faccia').forEach((b) => {
+        b.addEventListener('click', () => plush?.mostra(b.dataset.faccia, 180));
+      });
+
+      for (const k of chiavi) {
+        const el = document.getElementById(k);
+        el.addEventListener('input', () => {
+          const v = parseFloat(el.value);
+          opt[k] = v;
+          document.getElementById('v-' + k).textContent = v;
+          plush?.set(k, v);
+          mostraConf();
+        });
+      }
+
+      const gridEl = document.getElementById('grid');
+      gridEl.addEventListener('input', () => {
+        opt.grid = parseInt(gridEl.value, 10);
+        document.getElementById('v-grid').textContent = opt.grid;
+        mostraConf();
+      });
+      gridEl.addEventListener('change', avvia);
+
+      document.getElementById('riavvia').addEventListener('click', avvia);
+      document.getElementById('reset').addEventListener('click', () => plush?.reset());
+      document.getElementById('copia').addEventListener('click', () => {
+        navigator.clipboard?.writeText(confBox.textContent);
+      });
+
+      // contatore fps
+      let n = 0, t0 = performance.now();
+      (function tick() {
+        n++;
+        const ora = performance.now();
+        if (ora - t0 >= 1000) {
+          const stato = plush?.dorme ? 'motore fermo (foto a riposo)' : 'in simulazione';
+          statBox.textContent =
+            `${n} fps pagina Â· griglia ${opt.grid}Ã—${opt.grid} = ${opt.grid * opt.grid} nodi Â· ${stato}`;
+          n = 0; t0 = ora;
+        }
+        requestAnimationFrame(tick);
+      })();
+
+      avvia();
+    </script>
+  </body>
+</html>
