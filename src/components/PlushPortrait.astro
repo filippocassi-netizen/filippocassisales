@@ -1,14 +1,16 @@
 ---
 /**
- * Il ritratto dell'hero, afferrabile.
+ * Il ritratto dell'hero: un grande disco bianco con anello d'oro, al centro,
+ * e dentro la foto. Solo la faccia si puo' afferrare e tirare; il corpo resta
+ * una fotografia. L'orologio si puo' rubare con un click.
  *
  * Parte come una fotografia normale e resta tale se qualcosa non va: senza
  * WebGL, con `prefers-reduced-motion`, con il risparmio dati attivo o se il
- * motore non si avvia. Il canvas sostituisce la foto solo quando e' pronto.
+ * motore non si avvia.
  *
- * Le espressioni (395 KB in tutto) non vengono scaricate col resto della
- * pagina: partono quando il browser e' libero, e comunque non oltre il primo
- * avvicinamento del puntatore.
+ * Il canvas e' piu' grande del disco (vedi `pad`): serve perche' tirando, la
+ * faccia possa uscire dalla cornice invece di essere tagliata. Le facce sono
+ * scontornate, quindi fuori dal cerchio esce solo lui, non un rettangolo.
  */
 import type { Lang } from '../i18n';
 
@@ -17,16 +19,86 @@ interface Props {
   alt: string;
 }
 
-const { lang, alt } = Astro.props;
+const { alt, lang } = Astro.props;
 
-const MESSAGGIO: Record<Lang, string> = {
-  it: '⌚ ...e l’orologio non c’è più.',
-  es: '⌚ ...y el reloj ya no está.',
-  en: '⌚ ...and the watch is gone.',
-};
+/** Margine attorno alla foto, lasciato libero per la fuga della deformazione. */
+const PAD = 0.14;
+
+/**
+ * Posizione della foto nel disco: il cerchio piu' piccolo che contiene la
+ * sagoma (centro e raggio in UV) viene reso concentrico al disco e quasi a
+ * contatto con l'anello. Una sola fonte per il canvas e per la foto statica,
+ * cosi' il passaggio dall'una all'altro non fa saltare nulla.
+ */
+const FIGURA = { x: 0.501, y: 0.53, r: 0.4786, riempi: 0.97 };
+const SCALA = ((0.5 - PAD) * FIGURA.riempi) / FIGURA.r; // lato foto / lato canvas
+const ZOOM = SCALA / (1 - 2 * PAD);
+const OFF_X = -(FIGURA.x - 0.5) * SCALA;
+const OFF_Y = -(FIGURA.y - 0.5) * SCALA;
+const pc = (v: number) => `${(v * 100).toFixed(3)}%`;
+
+/** Testi per tecnologie assistive: etichetta, istruzioni e stati. */
+const TESTI = {
+  it: {
+    aiuto: 'Ritratto interattivo. Trascina il viso per tirarlo; Invio o Spazio per sbattere le palpebre, Esc per ripristinare.',
+    stati: {
+      neutral: 'Il ritratto ti guarda.',
+      surprised: 'Sorpreso: lo stai afferrando.',
+      pain: 'Fa una smorfia di fastidio.',
+      dazed: 'È un po’ stordito.',
+      angry: 'Si è arrabbiato.',
+      hum: 'Canticchia, con una farfalla sopra la testa.',
+      landed: 'La farfalla si è posata sul titolo.',
+      blink: 'Ha sbattuto le palpebre.',
+      reset: 'Ritratto ripristinato.',
+    },
+  },
+  es: {
+    aiuto: 'Retrato interactivo. Arrastra la cara para estirarla; Intro o Espacio para parpadear, Esc para restablecer.',
+    stati: {
+      neutral: 'El retrato te mira.',
+      surprised: 'Sorprendido: lo estás agarrando.',
+      pain: 'Hace una mueca de molestia.',
+      dazed: 'Está algo aturdido.',
+      angry: 'Se ha enfadado.',
+      hum: 'Tararea, con una mariposa sobre la cabeza.',
+      landed: 'La mariposa se ha posado en el título.',
+      blink: 'Ha parpadeado.',
+      reset: 'Retrato restablecido.',
+    },
+  },
+  en: {
+    aiuto: 'Interactive portrait. Drag the face to stretch it; Enter or Space to blink, Escape to reset.',
+    stati: {
+      neutral: 'The portrait is looking at you.',
+      surprised: 'Surprised: you are grabbing it.',
+      pain: 'Winces in discomfort.',
+      dazed: 'A little dazed.',
+      angry: 'It got angry.',
+      hum: 'Humming, with a butterfly above its head.',
+      landed: 'The butterfly landed on the headline.',
+      blink: 'Blinked.',
+      reset: 'Portrait reset.',
+    },
+  },
+} as const;
+const T = TESTI[lang as keyof typeof TESTI] ?? TESTI.it;
 ---
 
-<div class="fc-plush" data-plush data-messaggio={MESSAGGIO[lang]}>
+<div
+  class="fc-plush"
+  data-plush
+  data-stati={JSON.stringify(T.stati)}
+  data-zoom={ZOOM}
+  data-off-x={OFF_X}
+  data-off-y={OFF_Y}
+  tabindex="0"
+  role="group"
+  aria-label={alt}
+  aria-description={T.aiuto}
+  aria-keyshortcuts="Enter Space Escape"
+>
+  <p class="fc-plush-stato" role="status" aria-live="polite"></p>
   <img
     class="fc-plush-foto"
     src="/img/face/smile.webp"
@@ -36,33 +108,65 @@ const MESSAGGIO: Record<Lang, string> = {
     fetchpriority="high"
     decoding="async"
   />
-  <p class="fc-plush-msg" aria-live="polite"></p>
 </div>
 
-<style>
+<style
+  define:vars={{
+    pad: `${PAD * 100}%`,
+    lato: pc(SCALA),
+    sx: pc(0.5 + OFF_X - SCALA / 2),
+    sy: pc(0.5 + OFF_Y - SCALA / 2),
+  }}
+>
   .fc-plush {
     position: relative;
-    width: min(80vw, 600px);
+    width: min(92vw, 78vh);
     aspect-ratio: 1;
-    margin: 0 auto 10px;
-    touch-action: none;
+    margin: 0 auto 8px;
+    /* lo scorrimento verticale resta alla pagina anche sopra il ritratto */
+    touch-action: pan-y;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
 
-  /* alone morbido dietro la figura: sostituisce l'anello d'oro dell'avatar,
-     che su una sagoma ritagliata non avrebbe piu' senso */
+  /* anello di focus sul disco, per chi naviga da tastiera */
+  .fc-plush:focus-visible::after {
+    content: '';
+    position: absolute;
+    inset: calc(var(--pad) - 6px);
+    border-radius: 50%;
+    border: 2px dashed var(--gold, #c9a45c);
+    pointer-events: none;
+  }
+
+  /* solo per gli screen reader */
+  .fc-plush-stato {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* la parola del titolo su cui si posa la farfalla */
+  :global([data-farfalla]) {
+    position: relative;
+  }
+
+  /* Il disco bianco con l'anello d'oro e' la cornice, e sta SOTTO: cosi' la
+     faccia puo' uscirne senza essere tagliata da una maschera. */
   .fc-plush::before {
     content: '';
     position: absolute;
-    inset: 6% 6% 2%;
+    inset: var(--pad);
     border-radius: 50%;
-    background: radial-gradient(
-      circle at 50% 45%,
-      rgba(201, 164, 92, 0.22) 0%,
-      rgba(201, 164, 92, 0.07) 45%,
-      transparent 70%
-    );
-    filter: blur(14px);
-    pointer-events: none;
+    background: #fff;
+    border: clamp(3px, 0.6vh, 6px) solid var(--gold, #c9a45c);
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.5);
   }
 
   .fc-plush-foto,
@@ -74,69 +178,88 @@ const MESSAGGIO: Record<Lang, string> = {
     display: block;
   }
 
+  /* la foto di partenza si allinea al disco, come fara' poi il canvas */
   .fc-plush-foto {
+    inset: auto;
+    left: var(--sx);
+    top: var(--sy);
+    width: var(--lato);
+    height: var(--lato);
     object-fit: contain;
-    filter: drop-shadow(0 18px 38px rgba(0, 0, 0, 0.45));
   }
 
-  .fc-plush :global(canvas) {
-    filter: drop-shadow(0 18px 38px rgba(0, 0, 0, 0.45));
-  }
+  /* Da qui in su: testo a sinistra e ritratto a destra, come rameerez.com.
+     Sotto i 900px si impila, col ritratto sopra. Le regole sono agganciate a
+     :has(.fc-plush), quindi chi-sono e contatti non cambiano. */
+  @media (min-width: 900px) {
+    :global(.fc-hero:has(.fc-plush)) {
+      display: grid;
+      grid-template-columns: minmax(0, 52fr) minmax(0, 48fr);
+      gap: clamp(24px, 4vw, 64px);
+      align-items: center;
+      text-align: left;
+      max-width: 1200px;
+      margin-inline: auto;
+      padding-top: 40px;
+      padding-bottom: 40px;
+    }
 
-  .fc-plush-msg {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -6px;
-    margin: 0;
-    text-align: center;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--gold-light, #dbb872);
-    opacity: 0;
-    transition: opacity 0.35s ease;
-    pointer-events: none;
-  }
+    :global(.fc-hero:has(.fc-plush) .fc-hero-testo) {
+      grid-column: 1;
+      grid-row: 1;
+      max-width: none;
+    }
 
-  .fc-plush-msg.visibile {
-    opacity: 1;
-  }
-
-  @media (max-width: 560px) {
     .fc-plush {
-      width: min(86vw, 420px);
+      grid-column: 2;
+      grid-row: 1;
+      margin: 0;
+      width: min(100%, 78vh);
+      justify-self: center;
+    }
+
+    :global(.fc-hero:has(.fc-plush) .fc-h1) {
+      font-size: clamp(1.9rem, 3vw, 2.9rem);
+    }
+
+    :global(.fc-hero:has(.fc-plush) .fc-actions) {
+      justify-content: flex-start;
     }
   }
 </style>
 
 <script>
-  import type { Lang } from '../i18n';
+  import ritratto from '../data/ritratto.json';
 
+  // Cinque espressioni, ognuna con e senza orologio: dopo il furto tutte le
+  // reazioni devono avere il polso nudo, altrimenti l'orologio ricompare.
   const FACCE = [
-    'smile', 'shock', 'ouch', 'deadpan',
-    'smile-nowatch', 'shock-nowatch', 'ouch-nowatch',
+    'smile', 'shock', 'ouch', 'deadpan', 'dizzy',
+    'smile-nowatch', 'shock-nowatch', 'ouch-nowatch', 'deadpan-nowatch', 'dizzy-nowatch',
   ] as const;
 
   const REAZIONI_PRE = {
-    hovered: 'deadpan',
+    hovered: 'deadpan',           // arrivando sulla foto si fa serio
     held: ['shock', 'ouch'],
     pulled: ['ouch', 'shock'],
+    dazed: 'dizzy',               // appena lasciato dopo uno strappo
   };
   const REAZIONI_POST = {
-    hovered: 'smile-nowatch',
+    hovered: 'deadpan-nowatch',
     held: ['shock-nowatch', 'ouch-nowatch'],
     pulled: ['ouch-nowatch', 'shock-nowatch'],
+    dazed: 'dizzy-nowatch',
   };
 
-  // L'orologio, in coordinate UV dell'immagine.
-  const OROLOGIO = { x: 0.7, y: 0.865, r: 0.06 };
+  // Coordinate in UV dell'immagine.
+  // un po' piu' ampia della sola testa: se il bordo cade sul mento o sul
+  // collo, tirando si vede la giuntura
+  const FACCIA = { x: 0.48, y: 0.245, rx: 0.21, ry: 0.26 };
+  const OROLOGIO = { x: 0.7, y: 0.865, r: 0.075 };
 
   function avvia(host: HTMLElement) {
     if (host.dataset.avviato) return;
-
-    // Chi ha chiesto meno animazioni si tiene la fotografia.
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    // Idem con il risparmio dati: 395 KB di espressioni non si impongono.
     const conn = (navigator as any).connection;
     if (conn?.saveData) return;
 
@@ -145,47 +268,111 @@ const MESSAGGIO: Record<Lang, string> = {
     import('../scripts/plushie.js')
       .then(async ({ createPlushie }) => {
         const faces = Object.fromEntries(FACCE.map((f) => [f, `/img/face/${f}.webp`]));
-        const msg = host.querySelector<HTMLElement>('.fc-plush-msg');
 
         const plush = await createPlushie(host, {
           faces,
           rest: 'smile',
           reactions: REAZIONI_PRE,
-          grid: 56,
+          // Con le regioni mobili la faccia usa solo una frazione della
+          // maglia: a 56 nodi erano ~21x27 sul viso e la deformazione
+          // risultava sfaccettata. A 128 il viso ne ha ~48x61, e costa
+          // 1,4 ms per frame su un budget di 16,7.
+          grid: 128,
+          // raccordo piu' lungo verso la parte ferma: un gradino corto si
+          // legge come uno strappo sul bordo del viso
+          sfumatura: 0.5,
+          pad: 0.14,
+          // Il cerchio piu' piccolo che contiene tutta la sagoma ha centro
+          // (0.501, 0.530) e raggio 0.479 (UV): messo concentrico al disco,
+          // la figura lo riempie in modo uniforme. I valori arrivano da FIGURA, in testa al file.
+          zoom: Number(host.dataset.zoom),
+          offsetY: Number(host.dataset.offY),
+          offsetX: Number(host.dataset.offX),
+          // si deforma solo la faccia; il corpo resta una fotografia
+          mobile: [FACCIA, { x: OROLOGIO.x, y: OROLOGIO.y, r: 0.09 }],
+          maxPull: 0.24,
+          grabRadius: 0.2,
+          regioni: ritratto,
           zones: [
             {
               nome: 'orologio',
               ...OROLOGIO,
               once: true,
-              forza: 0.5,
+              forza: 0.45,
               onHit() {
                 // il set passa subito a quello col polso nudo, altrimenti
                 // basta spostare il mouse e l'orologio ricompare
                 plush.cambiaSet({ rest: 'smile-nowatch', reactions: REAZIONI_POST });
                 // istantaneo: un oggetto rubato non svanisce in dissolvenza
                 plush.mostra('shock-nowatch', 0);
-                if (msg) {
-                  msg.textContent = host.dataset.messaggio ?? '';
-                  msg.classList.add('visibile');
-                  setTimeout(() => msg.classList.remove('visibile'), 3000);
-                }
                 setTimeout(() => plush.mostra('smile-nowatch', 420), 1500);
               },
             },
           ],
         });
+
+        collega(host, plush);
       })
       .catch(() => {
-        // niente WebGL o modulo non caricato: resta la fotografia
         delete host.dataset.avviato;
       });
   }
 
+  /** Stato per screen reader, tastiera e farfalla. */
+  function collega(host: HTMLElement, plush: any) {
+    const stati: Record<string, string> = JSON.parse(host.dataset.stati || '{}');
+    const live = host.querySelector<HTMLElement>('.fc-plush-stato');
+    let ultimo = '';
+    let t = 0;
+    const annuncia = (k: string) => {
+      if (!live || !stati[k] || k === ultimo) return;
+      ultimo = k;
+      clearTimeout(t);
+      // un attimo di attesa: le transizioni rapide non devono parlare a raffica
+      t = window.setTimeout(() => { live.textContent = stati[k]; }, 350);
+    };
+    plush.on('stato', annuncia);
+
+    host.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        plush.parpebra();
+        annuncia('blink');
+        ultimo = ''; // il battito non deve bloccare l'annuncio successivo
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        plush.ripristina();
+        farfalla?.interrompi();
+        ultimo = '';
+        annuncia('reset');
+      }
+    });
+
+    let farfalla: any = null;
+    const parola = document.querySelector<HTMLElement>('[data-farfalla]');
+    if (parola) {
+      import('../scripts/farfalla.js')
+        .then(({ creaFarfalla }) => {
+          farfalla = creaFarfalla({
+            plush,
+            host,
+            parola,
+            punti: ritratto,
+            onStato: annuncia,
+          });
+          plush.on('grab', () => farfalla.interrompi());
+          if (import.meta.env.DEV) (window as any).__farfalla = farfalla;
+        })
+        .catch(() => {});
+    }
+
+    if (import.meta.env.DEV) (window as any).__plush = plush;
+  }
+
   document.querySelectorAll<HTMLElement>('[data-plush]').forEach((host) => {
-    // al primo avvicinamento, se non e' gia' partito da solo
     host.addEventListener('pointerenter', () => avvia(host), { once: true });
+    host.addEventListener('focus', () => avvia(host), { once: true });
     host.addEventListener('touchstart', () => avvia(host), { once: true, passive: true });
-    // ...e comunque appena il browser e' libero, cosi' il primo tocco non aspetta
     if ('requestIdleCallback' in window) {
       (window as any).requestIdleCallback(() => avvia(host), { timeout: 4000 });
     } else {

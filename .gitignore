@@ -31,3 +31,6 @@ desktop.ini
 
 # Originali PNG delle espressioni: la build usa i .webp in public/img/face
 originali/
+
+# Immagini di controllo generate da scripts/verifica-ritratto.py
+scripts/_controllo/

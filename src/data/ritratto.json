@@ -1,0 +1,18 @@
+{
+  "_nota": "Coordinate UV (0-1) sulle fotografie di public/img/face/*.webp, tutte 1000x1000 e allineate pixel per pixel. 'sx'/'dx' sono sinistra/destra DELL'IMMAGINE. Misurate sulla foto, non inventate. Le maschere di occhi, palpebre, sopracciglia e bocca sono ellissi risolte nello shader da questi numeri; scripts/verifica-ritratto.py le disegna sopra ogni foto per il controllo a vista.",
+  "immagine": { "w": 1000, "h": 1000 },
+  "occhi": {
+    "sx": { "x": 0.465, "y": 0.237 },
+    "dx": { "x": 0.56, "y": 0.247 },
+    "semiassi": { "rx": 0.03, "ry": 0.0125 },
+    "sguardoMax": { "x": 0.0085, "y": 0.0025 }
+  },
+  "sopracciglia": {
+    "sx": { "x": 0.463, "y": 0.214 },
+    "dx": { "x": 0.566, "y": 0.226 },
+    "semiassi": { "rx": 0.055, "ry": 0.019 }
+  },
+  "bocca": { "x": 0.506, "y": 0.352, "rx": 0.062, "ry": 0.032 },
+  "viso": { "x": 0.49, "y": 0.28, "rx": 0.13, "ry": 0.2 },
+  "testa": { "sopra": { "x": 0.51, "y": 0.085 } }
+}
