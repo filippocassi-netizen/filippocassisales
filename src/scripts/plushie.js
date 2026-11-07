@@ -51,6 +51,22 @@ const DEFAULT = {
    * `null` = tutta l'immagine e' deformabile.
    */
   mobile: null,
+  /**
+   * Regione mobile a rampa verticale, per la testa intera: libera sopra `v1`
+   * (UV), ferma sotto `v0`, con un passaggio dolce in mezzo; nella fascia
+   * delle spalle si restringe in orizzontale (`xa`..`xb` dal centro `xc`).
+   * Niente bordo netto: e' quello che fa sembrare il volto "a sezioni".
+   *   { v0, v1, xc, xa, xb }
+   */
+  rampa: null,
+  /** Perno attorno a cui la testa si inclina, in UV (il collo). */
+  neck: { x: 0.5, y: 0.47 },
+  /** Quanto la testa intera segue la mano (0 = solo la pelle si stira). */
+  sway: 0.7,
+  swayFreq: 8, // rad/s della molla di inclinazione
+  swayZeta: 0.42, // smorzamento: sotto 1 ondeggia e si assesta
+  /** Soglia di opacita' (0-255) sotto cui un punto e' vuoto e non si afferra. */
+  opaco: 40,
   /** Quanto e' sfumato il bordo delle regioni, in frazione del raggio. */
   sfumatura: 0.38,
   reach: 0.55, // c  — quanto lontano si propaga una trazione
@@ -241,6 +257,23 @@ export async function createPlushie(host, opzioni = {}) {
   );
   const img = immagini[nomeBase];
 
+  // Maschera di opacita' della foto base: chi tocca lo sfondo trasparente non
+  // afferra niente. Si legge una volta sola, a 256x256.
+  const MA = 256;
+  const alfa = new Uint8Array(MA * MA);
+  {
+    const c = document.createElement('canvas');
+    c.width = c.height = MA;
+    const x2 = c.getContext('2d', { willReadFrequently: true });
+    x2.drawImage(img, 0, 0, MA, MA);
+    const d = x2.getImageData(0, 0, MA, MA).data;
+    for (let i = 0; i < MA * MA; i++) alfa[i] = d[i * 4 + 3];
+  }
+  const opaco = (u, v) => {
+    const c = Math.round(u * (MA - 1)), r = Math.round(v * (MA - 1));
+    return c >= 0 && r >= 0 && c < MA && r < MA && alfa[r * MA + c] >= opt.opaco;
+  };
+
   const canvas = document.createElement('canvas');
   canvas.className = 'plush-canvas';
   // pan-y: lo scorrimento verticale resta alla pagina, l'orizzontale arriva a noi
@@ -405,7 +438,7 @@ export async function createPlushie(host, opzioni = {}) {
    */
   const libero = new Float32Array(n);
   if (!opt.mobile || !opt.mobile.length) {
-    libero.fill(1);
+    if (!opt.rampa) libero.fill(1); // ne' ellissi ne' rampa: tutta l'immagine
   } else {
     const regioni = opt.mobile.map((z) => ({
       x: z.x, y: z.y, rx: z.rx ?? z.r, ry: z.ry ?? z.r,
@@ -424,6 +457,22 @@ export async function createPlushie(host, opzioni = {}) {
         w = Math.max(w, t * t * (3 - 2 * t)); // smoothstep
       }
       libero[i] = w;
+    }
+  }
+
+  // Peso con cui la testa intera si inclina: solo la rampa, mai le ellissi
+  // (l'orologio non deve ruotare attorno al collo).
+  const pesoSway = new Float32Array(n);
+  if (opt.rampa) {
+    const q = opt.rampa;
+    const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    for (let i = 0; i < n; i++) {
+      const u = xAu(restX[i]), v = yAv(restY[i]);
+      const wv = 1 - sm(q.v1, q.v0, v);
+      const wh = 1 - (1 - (1 - sm(q.xa, q.xb, Math.abs(u - q.xc)))) * sm(q.v1 - 0.06, q.v1 + 0.06, v);
+      const w = wv * wh;
+      pesoSway[i] = w;
+      if (w > libero[i]) libero[i] = w;
     }
   }
 
@@ -504,7 +553,28 @@ export async function createPlushie(host, opzioni = {}) {
     ux[i] *= f; uy[i] *= f;
   }
 
+  // ---- inclinazione della testa -----------------------------------------------
+  // Oltre alla pelle che si stira, la testa intera ruota attorno al collo e si
+  // sposta un po' verso la mano, trattenuta da una molla. E' lei a far sembrare
+  // il volto un unico oggetto morbido invece di una toppa sulla foto.
+  const sw = { th: 0, vth: 0, ty: 0, vty: 0, thT: 0, tyT: 0, leva: 0.3 };
+  const pivX = uvAx(opt.neck.x), pivY = uvAy(opt.neck.y);
+  const haSway = !!opt.rampa && opt.sway > 0;
+
+  function molla(dt) {
+    if (!haSway) return;
+    const w = opt.swayFreq, z = opt.swayZeta;
+    sw.vth += (w * w * (sw.thT - sw.th) - 2 * z * w * sw.vth) * dt;
+    sw.th += sw.vth * dt;
+    sw.vty += (w * w * (sw.tyT - sw.ty) - 2 * z * w * sw.vty) * dt;
+    sw.ty += sw.vty * dt;
+  }
+  const swayAttivo = () =>
+    Math.abs(sw.th) > 1e-4 || Math.abs(sw.vth) > 1e-3 || Math.abs(sw.ty) > 1e-4 ||
+    Math.abs(sw.vty) > 1e-3 || Math.abs(sw.thT) > 1e-4 || Math.abs(sw.tyT) > 1e-4;
+
   function passo(dt) {
+    molla(dt);
     laplaciani();
     for (let i = 0; i < n; i++) {
       // fuori dalle regioni mobili il nodo e' inchiodato: il corpo resta
@@ -538,6 +608,8 @@ export async function createPlushie(host, opzioni = {}) {
     const c = Math.round(xAu(x) * (N - 1));
     const r = Math.round(yAv(y) * (N - 1));
     if (c < 0 || r < 0 || c >= N || r >= N) return 0;
+    // lo sfondo trasparente non risponde, anche dentro la regione mobile
+    if (!opaco(xAu(x), yAv(y))) return 0;
     return libero[idx(r, c)];
   }
 
@@ -583,22 +655,35 @@ export async function createPlushie(host, opzioni = {}) {
     const dx = sx - px, dy = sy - py;
     const invDt = 1 / Math.max(0.004, dt);
 
+    // parte del movimento va alla testa intera (vedi molla): la pelle sotto
+    // la mano ne prende il resto, cosi' la somma resta quella del puntatore
+    const gain = haSway ? 1 - 0.45 * opt.sway : 1;
+    let sW = 0, sUx = 0, sUy = 0;
     for (let i = 0; i < n; i++) {
       const w = peso[i];
       if (w <= 0) continue;
-      ux[i] += dx * w;
-      uy[i] += dy * w;
+      ux[i] += dx * w * gain;
+      uy[i] += dy * w * gain;
+      sW += w; sUx += ux[i] * w; sUy += uy[i] * w;
       limita(i);
       // la mano imprime velocita' vera: al rilascio il rimbalzo ha senso
       vx[i] = dx * w * invDt;
       vy[i] = dy * w * invDt;
     }
     px = sx; py = sy;
+    if (haSway && sW > 0) {
+      // spostamento medio della presa -> inclinazione e trazione verticale
+      const mx = sUx / sW, my = sUy / sW;
+      const k = opt.sway;
+      sw.thT = Math.max(-0.3, Math.min(0.3, (k * 0.9 * mx) / sw.leva));
+      sw.tyT = Math.max(-0.05, Math.min(0.05, k * 0.35 * my));
+    }
     sveglia();
   }
 
   function lascia() {
     inMano = false;
+    sw.thT = 0; sw.tyT = 0; // la molla riporta la testa a riposo, con un po' di rimbalzo
     peso.fill(0);
     canvas.style.cursor = 'grab';
   }
@@ -863,6 +948,7 @@ export async function createPlushie(host, opzioni = {}) {
     strappato = false;
     px = x; py = y;
     sx = x; sy = y; tPuntatore = 0; // il filtro riparte dal punto di presa
+    sw.leva = Math.max(0.12, Math.hypot(x - pivX, y - pivY)); // braccio della rotazione
     canvas.style.cursor = 'grabbing';
     try { canvas.setPointerCapture?.(pointerId); } catch {}
     if (lunga) navigator.vibrate?.(8);
@@ -1056,9 +1142,18 @@ export async function createPlushie(host, opzioni = {}) {
     if (accumulo > 0.0005) { passo(accumulo); accumulo = 0; }
     ombreggia();
 
-    for (let i = 0; i < n; i++) {
-      posArr[i * 2] = restX[i] + ux[i];
-      posArr[i * 2 + 1] = restY[i] + uy[i];
+    if (haSway && (sw.th || sw.ty)) {
+      for (let i = 0; i < n; i++) {
+        const ws = pesoSway[i];
+        const rx = restX[i] - pivX, ry = restY[i] - pivY;
+        posArr[i * 2] = restX[i] + ux[i] - sw.th * ry * ws;
+        posArr[i * 2 + 1] = restY[i] + uy[i] + (sw.th * rx + sw.ty) * ws;
+      }
+    } else {
+      for (let i = 0; i < n; i++) {
+        posArr[i * 2] = restX[i] + ux[i];
+        posArr[i * 2 + 1] = restY[i] + uy[i];
+      }
     }
 
     if (fadeT < 1) fadeT = Math.min(1, fadeT + dt / fadeDurata);
@@ -1104,11 +1199,12 @@ export async function createPlushie(host, opzioni = {}) {
     // Una dissolvenza in corso tiene sveglio il motore fino alla fine.
     const fermo =
       !inMano && fadeT >= 1 && (facciaA === nomeBase || modo) && aRiposo() &&
-      blinkT0 < 0 && !emoAttiva() && !sguardoAttivo() && modo !== 'hum';
+      blinkT0 < 0 && !emoAttiva() && !sguardoAttivo() && modo !== 'hum' && !swayAttivo();
     if (fermo) {
       // un ultimo fotogramma con lo spostamento esattamente nullo: la foto
       // torna alla geometria originale, non a "quasi"
       if (azzera()) { raf = requestAnimationFrame(frame); return; }
+      sw.th = sw.vth = sw.ty = sw.vty = 0;
       dorme = true;
       return;
     }
@@ -1159,6 +1255,7 @@ export async function createPlushie(host, opzioni = {}) {
      */
     ripristina() {
       azzera(); peso.fill(0); inMano = false; annullaAttesa();
+      sw.th = sw.vth = sw.ty = sw.vty = sw.thT = sw.tyT = 0;
       clearTimeout(timerRabbia); clearTimeout(timerStordito);
       modo = null; prese.length = 0;
       for (const k in emoT) emoT[k] = 0;

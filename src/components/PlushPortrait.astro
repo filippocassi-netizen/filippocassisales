@@ -252,9 +252,6 @@ const T = TESTI[lang as keyof typeof TESTI] ?? TESTI.it;
   };
 
   // Coordinate in UV dell'immagine.
-  // un po' piu' ampia della sola testa: se il bordo cade sul mento o sul
-  // collo, tirando si vede la giuntura
-  const FACCIA = { x: 0.48, y: 0.245, rx: 0.21, ry: 0.26 };
   const OROLOGIO = { x: 0.7, y: 0.865, r: 0.075 };
 
   function avvia(host: HTMLElement) {
@@ -289,12 +286,18 @@ const T = TESTI[lang as keyof typeof TESTI] ?? TESTI.it;
           offsetY: Number(host.dataset.offY),
           offsetX: Number(host.dataset.offX),
           // si deforma solo la faccia; il corpo resta una fotografia
-          mobile: [FACCIA, { x: OROLOGIO.x, y: OROLOGIO.y, r: 0.09 }],
+          mobile: [{ x: OROLOGIO.x, y: OROLOGIO.y, r: 0.09 }],
+          // La testa intera si muove, con il collo come perno: capelli,
+          // orecchie e mento seguono insieme, senza giunture. Sotto il mento
+          // la libera' cala dolcemente fino alle spalle, che restano ferme.
+          rampa: { v0: 0.62, v1: 0.4, xc: 0.5, xa: 0.12, xb: 0.3 },
+          neck: { x: 0.5, y: 0.47 },
+          sway: 0.8,
           // Meno stiramento e piu' gomma: il limite e' morbido, quindi la
           // faccia oppone resistenza invece di arrivare a fondo corsa e
           // deformarsi in modo innaturale.
           maxPull: 0.16,
-          grabRadius: 0.22,
+          grabRadius: 0.36, // ampio: la testa si muove quasi come un pezzo unico, i lineamenti non si schiacciano
           smooth: 0.05, // il puntatore e' filtrato un po' di piu': niente scatti
           damping: 3.1, // l'ondeggiamento si smorza prima
           shade: 0.3, // ombreggiatura delle pieghe piu' leggera
