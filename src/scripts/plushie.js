@@ -542,6 +542,17 @@ export async function createPlushie(host, opzioni = {}) {
   // curva si appiattisce verso maxPull. Un taglio netto fa scattare e piegare
   // la maglia; una curva continua fa sentire la gomma che oppone resistenza.
   function limita(i) {
+    // Verso il basso la testa va a sovrapporsi al corpo fermo, e il collo non
+    // si comprime come si allunga: li' il limite e' molto piu' severo, e
+    // prima che la maglia si ripieghi su se stessa.
+    if (uy[i] > 0) {
+      const kd = opt.maxPull * 0.12, qd = opt.maxPull * 0.3;
+      if (uy[i] > kd) {
+        const e = Math.exp(-2 * (uy[i] - kd) / qd);
+        uy[i] = kd + qd * (1 - e) / (1 + e);
+      }
+      if (vy[i] > 0 && uy[i] > kd) vy[i] *= 0.6; // la velocita' si spegne contro il limite
+    }
     const m2 = ux[i] * ux[i] + uy[i] * uy[i];
     const k = opt.maxPull * 0.5;
     if (m2 <= k * k) return;
@@ -676,7 +687,7 @@ export async function createPlushie(host, opzioni = {}) {
       const mx = sUx / sW, my = sUy / sW;
       const k = opt.sway;
       sw.thT = Math.max(-0.3, Math.min(0.3, (k * 0.9 * mx) / sw.leva));
-      sw.tyT = Math.max(-0.05, Math.min(0.05, k * 0.35 * my));
+      sw.tyT = Math.max(-0.05, Math.min(0.012, k * 0.35 * my)); // in giu' pochissimo
     }
     sveglia();
   }
