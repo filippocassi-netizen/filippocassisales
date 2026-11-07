@@ -276,9 +276,20 @@ export async function createPlushie(host, opzioni = {}) {
     gl.bindTexture(gl.TEXTURE_2D, t);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
+    // Le foto sono molto piu' grandi di come si vedono: senza mipmap la
+    // riduzione sfarfalla appena la maglia si muove. WebGL1 vuole potenze di
+    // due per le mipmap, quindi si ricampiona una volta sola al caricamento.
+    const L = 1024;
+    const tmp = document.createElement('canvas');
+    tmp.width = tmp.height = L;
+    const cx = tmp.getContext('2d');
+    cx.imageSmoothingQuality = 'high';
+    cx.drawImage(im, 0, 0, L, L);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tmp);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    tmp.width = tmp.height = 0; // rilascia la memoria del canvas d'appoggio
     texture[nome] = t;
   }
 
@@ -478,6 +489,21 @@ export async function createPlushie(host, opzioni = {}) {
   }
   ricalcola();
 
+  // Limite morbido allo stiramento: fino al ginocchio nulla cambia, oltre la
+  // curva si appiattisce verso maxPull. Un taglio netto fa scattare e piegare
+  // la maglia; una curva continua fa sentire la gomma che oppone resistenza.
+  function limita(i) {
+    const m2 = ux[i] * ux[i] + uy[i] * uy[i];
+    const k = opt.maxPull * 0.5;
+    if (m2 <= k * k) return;
+    const m = Math.sqrt(m2);
+    const q = opt.maxPull - k;
+    const e = Math.exp(-2 * (m - k) / q);
+    const nm = k + q * (1 - e) / (1 + e); // k + q*tanh((m-k)/q)
+    const f = nm / m;
+    ux[i] *= f; uy[i] *= f;
+  }
+
   function passo(dt) {
     laplaciani();
     for (let i = 0; i < n; i++) {
@@ -494,11 +520,7 @@ export async function createPlushie(host, opzioni = {}) {
       vy[i] += ay * dt;
       ux[i] += vx[i] * dt;
       uy[i] += vy[i] * dt;
-      const m2 = ux[i] * ux[i] + uy[i] * uy[i];
-      if (m2 > maxPull2) {
-        const s = opt.maxPull / Math.sqrt(m2);
-        ux[i] *= s; uy[i] *= s;
-      }
+      limita(i);
     }
   }
 
@@ -566,11 +588,7 @@ export async function createPlushie(host, opzioni = {}) {
       if (w <= 0) continue;
       ux[i] += dx * w;
       uy[i] += dy * w;
-      const m2 = ux[i] * ux[i] + uy[i] * uy[i];
-      if (m2 > maxPull2) {
-        const s = opt.maxPull / Math.sqrt(m2);
-        ux[i] *= s; uy[i] *= s;
-      }
+      limita(i);
       // la mano imprime velocita' vera: al rilascio il rimbalzo ha senso
       vx[i] = dx * w * invDt;
       vy[i] = dy * w * invDt;
@@ -1032,6 +1050,10 @@ export async function createPlushie(host, opzioni = {}) {
       accumulo -= PASSO_FISSO;
       passi++;
     }
+    // Il resto, che non basta per un passo intero, si integra comunque con un
+    // passo piu' corto: senza, su monitor a 90/120/144 Hz la maglia avanza a
+    // scatti alterni di uno e due passi e il movimento "tremola".
+    if (accumulo > 0.0005) { passo(accumulo); accumulo = 0; }
     ombreggia();
 
     for (let i = 0; i < n; i++) {

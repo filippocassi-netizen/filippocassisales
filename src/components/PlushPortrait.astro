@@ -290,8 +290,14 @@ const T = TESTI[lang as keyof typeof TESTI] ?? TESTI.it;
           offsetX: Number(host.dataset.offX),
           // si deforma solo la faccia; il corpo resta una fotografia
           mobile: [FACCIA, { x: OROLOGIO.x, y: OROLOGIO.y, r: 0.09 }],
-          maxPull: 0.24,
-          grabRadius: 0.2,
+          // Meno stiramento e piu' gomma: il limite e' morbido, quindi la
+          // faccia oppone resistenza invece di arrivare a fondo corsa e
+          // deformarsi in modo innaturale.
+          maxPull: 0.16,
+          grabRadius: 0.22,
+          smooth: 0.05, // il puntatore e' filtrato un po' di piu': niente scatti
+          damping: 3.1, // l'ondeggiamento si smorza prima
+          shade: 0.3, // ombreggiatura delle pieghe piu' leggera
           regioni: ritratto,
           zones: [
             {
