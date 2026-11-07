@@ -936,6 +936,9 @@ export async function createPlushie(host, opzioni = {}) {
       // trascinamento deliberatamente orizzontale; in verticale scorre la pagina.
       if (liberoIn(x, y) < 0.05) return;
       annullaAttesa();
+      // un colpetto subito: il ritratto risponde al tocco anche prima di
+      // sapere se sara' una presa, uno scroll o un semplice tocco
+      colpisci(x, y, 0.22, 0.09 * scala);
       attesa = {
         id: ev.pointerId, x, y, cx: ev.clientX, cy: ev.clientY,
         timer: setTimeout(() => iniziaPresa(attesa.id, attesa.x, attesa.y, true), opt.longPressMs),
@@ -992,11 +995,11 @@ export async function createPlushie(host, opzioni = {}) {
     const [x, y] = posizionePuntatore(ev);
     if (attesa && ev.pointerId === attesa.id) {
       const dx = Math.abs(ev.clientX - attesa.cx), dy = Math.abs(ev.clientY - attesa.cy);
-      if (Math.max(dx, dy) > 10) {
-        // orizzontale deciso = presa; altrimenti e' uno scroll: lasciamo stare
-        if (dx > 14 && dx > dy * 1.4) iniziaPresa(ev.pointerId, attesa.x, attesa.y);
-        else annullaAttesa();
-      }
+      // orizzontale = presa; verticale = scroll della pagina. Finche' il dito
+      // non ha deciso (meno di 10 px) si aspetta: annullare qui, tra due
+      // soglie diverse, faceva fallire la presa con un dito lento.
+      if (dx > 10 && dx > dy * 1.2) iniziaPresa(ev.pointerId, attesa.x, attesa.y);
+      else if (dy > 10) annullaAttesa();
       if (!inMano) return;
     }
     if (!inMano) {
